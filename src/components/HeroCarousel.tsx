@@ -101,7 +101,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
 
   return (
     <div 
-      className="relative w-full h-full min-h-[500px] sm:min-h-[580px] lg:min-h-[680px] flex items-center justify-center overflow-hidden rounded-[32px] sm:rounded-[40px] bg-[#E5E7EB] shadow-2xl border-4 border-white group"
+      className="relative w-full h-full min-h-[380px] sm:min-h-[440px] lg:min-h-[500px] flex items-center justify-center overflow-hidden rounded-[28px] sm:rounded-[36px] bg-[#E5E7EB] shadow-xl border-4 border-white group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       id="hero-carousel-container"

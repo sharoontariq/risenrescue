@@ -2,5 +2,7 @@
   "name": "Animal Welfare Appeal",
   "description": "Animal welfare hero platform featuring an immersive carousel and an interactive donation appeal to rescue, rehabilitate, and protect animals in need.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

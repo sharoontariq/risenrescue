@@ -1,19 +1,34 @@
 import React from 'react';
-import { ShieldCheck, PhoneCall, Heart } from 'lucide-react';
+import { ShieldCheck, PhoneCall, Heart, Images, Shield } from 'lucide-react';
 
 interface HeaderProps {
+  currentPage?: 'home' | 'gallery' | 'admin';
+  onHomeClick?: () => void;
   onDonateClick?: () => void;
   onWhatWeDoClick?: () => void;
   onStoriesClick?: () => void;
+  onGalleryClick?: () => void;
+  onAdminClick?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onDonateClick, onWhatWeDoClick, onStoriesClick }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  currentPage = 'home',
+  onHomeClick,
+  onDonateClick, 
+  onWhatWeDoClick, 
+  onStoriesClick,
+  onGalleryClick,
+  onAdminClick
+}) => {
   return (
     <header className="relative z-30 w-full px-4 sm:px-8 lg:px-12 py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Logo & Brand Identity */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#15803D] rounded-lg flex items-center justify-center text-white shadow-sm flex-shrink-0">
+        <div 
+          onClick={onHomeClick}
+          className="flex items-center gap-3 cursor-pointer group"
+        >
+          <div className="w-8 h-8 bg-[#15803D] group-hover:bg-green-800 rounded-lg flex items-center justify-center text-white shadow-sm flex-shrink-0 transition-colors">
             <Heart className="w-4 h-4 fill-white text-white" />
           </div>
           <div>
@@ -33,7 +48,18 @@ export const Header: React.FC<HeaderProps> = ({ onDonateClick, onWhatWeDoClick, 
         </div>
 
         {/* Navigation & Fast Action */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button
+            onClick={onHomeClick}
+            className={`text-xs font-bold transition-colors cursor-pointer px-3.5 py-2 rounded-full border ${
+              currentPage === 'home'
+                ? 'bg-green-50 text-[#15803D] border-green-200 font-black'
+                : 'text-gray-600 hover:text-[#15803D] border-transparent hover:bg-gray-100'
+            }`}
+          >
+            Home
+          </button>
+
           <button
             onClick={onWhatWeDoClick}
             className="hidden sm:inline-flex items-center text-xs font-bold text-gray-600 hover:text-[#15803D] transition-colors cursor-pointer px-3.5 py-2 rounded-full hover:bg-gray-100 border border-transparent hover:border-gray-200"
@@ -48,6 +74,18 @@ export const Header: React.FC<HeaderProps> = ({ onDonateClick, onWhatWeDoClick, 
             Stories
           </button>
 
+          <button
+            onClick={onGalleryClick}
+            className={`inline-flex items-center gap-1.5 text-xs font-bold transition-colors cursor-pointer px-3.5 py-2 rounded-full border ${
+              currentPage === 'gallery'
+                ? 'bg-green-50 text-[#15803D] border-green-200 font-black'
+                : 'text-gray-600 hover:text-[#15803D] border-transparent hover:bg-gray-100'
+            }`}
+          >
+            <Images className="w-3.5 h-3.5" />
+            <span>Gallery</span>
+          </button>
+
           <div className="hidden lg:flex items-center gap-2 text-xs text-gray-600 bg-gray-50 border border-gray-200/80 px-3.5 py-1.5 rounded-full">
             <PhoneCall className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
             <span>
@@ -59,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({ onDonateClick, onWhatWeDoClick, 
           <button
             id="header-donate-btn"
             onClick={onDonateClick}
-            className="flex items-center gap-2 px-6 py-2 text-xs sm:text-sm font-semibold text-white bg-[#15803D] hover:bg-green-800 active:bg-green-900 transition-colors rounded-full shadow-sm cursor-pointer whitespace-nowrap"
+            className="flex items-center gap-2 px-5 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-white bg-[#15803D] hover:bg-green-800 active:bg-green-900 transition-colors rounded-full shadow-sm cursor-pointer whitespace-nowrap"
           >
             <Heart className="w-4 h-4 fill-white text-white" />
             <span>Donate Now</span>

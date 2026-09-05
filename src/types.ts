@@ -45,6 +45,17 @@ export interface StoryCardItem {
   tag?: string;
 }
 
+export interface GalleryItem {
+  id: string;
+  title: string;
+  caption: string;
+  category: string;
+  imageUrl: string;
+  uploadedAt: string;
+  isUserUploaded?: boolean;
+  photographer?: string;
+}
+
 export interface DonationSubmission {
   amount: number;
   frequency: DonationFrequency;
