@@ -7,6 +7,7 @@ import { WhatWeDoSection } from './components/WhatWeDoSection';
 import { StoriesSection } from './components/StoriesSection';
 import { GalleryPage } from './components/GalleryPage';
 import { AdminPanel } from './components/AdminPanel';
+import { Footer } from './components/Footer';
 import { CAROUSEL_SLIDES } from './data/carouselData';
 import { CarouselSlide, DonationSubmission, GalleryItem } from './types';
 import { ShieldCheck, Heart, Sparkles, Award, ArrowUp } from 'lucide-react';
@@ -258,34 +259,15 @@ export default function App() {
         </>
       )}
 
-      {/* Footer */}
-      <footer className="w-full bg-white border-t border-gray-200/80 py-8 text-center text-xs text-gray-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Heart className="w-4 h-4 text-[#15803D] fill-[#15803D]" />
-            <span className="font-bold text-[#1A1A1A]">PAWHAVEN WILDLIFE TRUST</span>
-            <span className="text-gray-300">•</span>
-            <span>Dedicated to compassionate animal rescue and sanctuary since 2011</span>
-          </div>
-          <div className="flex items-center gap-4 flex-wrap justify-center sm:justify-end">
-            <button
-              onClick={handleNavigateGallery}
-              className="text-[#15803D] hover:underline font-semibold cursor-pointer"
-            >
-              Photo Showcase Gallery
-            </button>
-            <span className="text-gray-300">•</span>
-            <button
-              onClick={handleNavigateAdmin}
-              className="text-gray-400 hover:text-gray-700 transition-colors font-medium cursor-pointer"
-            >
-              Admin Panel
-            </button>
-            <span className="text-gray-300">•</span>
-            <span>© {new Date().getFullYear()} PawHaven Wildlife Trust. All donations are tax-deductible.</span>
-          </div>
-        </div>
-      </footer>
+      {/* Comprehensive Sanctuary Footer with Social Media, Email, Phone & Address Sections */}
+      <Footer
+        onNavigateHome={handleNavigateHome}
+        onNavigateGallery={handleNavigateGallery}
+        onNavigateAdmin={handleNavigateAdmin}
+        onDonateClick={() => handleQuickDonateFocus()}
+        onWhatWeDoClick={handleWhatWeDoScroll}
+        onStoriesClick={handleStoriesScroll}
+      />
 
       {/* Tax-Deductible Donation Receipt & Gratitude Modal */}
       <DonationSuccessModal

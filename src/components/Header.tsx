@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold tracking-tight text-[#1A1A1A]">
-                PAWHAVEN
+                RISE & RESCUE
               </span>
               <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold bg-green-50 text-[#15803D] px-2.5 py-0.5 rounded-full border border-green-200">
                 <ShieldCheck className="w-3 h-3 text-[#15803D]" />
