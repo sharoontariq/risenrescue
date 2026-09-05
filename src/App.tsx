@@ -4,6 +4,7 @@ import { HeroCarousel } from './components/HeroCarousel';
 import { DonationAppealBox } from './components/DonationAppealBox';
 import { DonationSuccessModal } from './components/DonationSuccessModal';
 import { WhatWeDoSection } from './components/WhatWeDoSection';
+import { StoriesSection } from './components/StoriesSection';
 import { CAROUSEL_SLIDES } from './data/carouselData';
 import { CarouselSlide, DonationSubmission } from './types';
 import { ShieldCheck, Heart, Sparkles, Award } from 'lucide-react';
@@ -12,10 +13,15 @@ export default function App() {
   const [currentSlide, setCurrentSlide] = useState<CarouselSlide>(CAROUSEL_SLIDES[0]);
   const [activeTab, setActiveTab] = useState<'carousel' | 'donate'>('carousel');
   const [completedDonation, setCompletedDonation] = useState<DonationSubmission | null>(null);
+  const [selectedAppealTarget, setSelectedAppealTarget] = useState<string | null>(null);
   const donationBoxRef = useRef<HTMLDivElement>(null);
   const whatWeDoRef = useRef<HTMLDivElement>(null);
+  const storiesRef = useRef<HTMLDivElement>(null);
 
-  const handleQuickDonateFocus = () => {
+  const handleQuickDonateFocus = (targetName?: string) => {
+    if (targetName) {
+      setSelectedAppealTarget(targetName);
+    }
     setActiveTab('donate');
     if (donationBoxRef.current) {
       donationBoxRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -28,12 +34,19 @@ export default function App() {
     }
   };
 
+  const handleStoriesScroll = () => {
+    if (storiesRef.current) {
+      storiesRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-[#1A1A1A] flex flex-col selection:bg-[#15803D] selection:text-white">
       {/* Top Sanctuary Navigation Bar */}
       <Header 
-        onDonateClick={handleQuickDonateFocus} 
+        onDonateClick={() => handleQuickDonateFocus()} 
         onWhatWeDoClick={handleWhatWeDoScroll}
+        onStoriesClick={handleStoriesScroll}
       />
 
       {/* Main Hero Stage */}
@@ -86,7 +99,7 @@ export default function App() {
             }`}
           >
             <DonationAppealBox
-              activeAnimalName={currentSlide.animalName}
+              activeAnimalName={selectedAppealTarget || currentSlide.animalName}
               onSuccessfulDonation={(submission) => setCompletedDonation(submission)}
             />
           </div>
@@ -119,6 +132,11 @@ export default function App() {
       {/* What We Do Section Under the Hero Page */}
       <div ref={whatWeDoRef}>
         <WhatWeDoSection onExploreMore={handleQuickDonateFocus} />
+      </div>
+
+      {/* Stories Section Under What We Do */}
+      <div ref={storiesRef}>
+        <StoriesSection onSupportAnimal={(name) => handleQuickDonateFocus(name)} />
       </div>
 
       {/* Footer */}

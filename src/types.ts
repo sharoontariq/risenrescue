@@ -33,6 +33,18 @@ export interface WhatWeDoItem {
   metricLabel?: string;
 }
 
+export interface StoryCardItem {
+  id: string;
+  name: string;
+  title: string;
+  category: string;
+  description: string;
+  imageUrl: string;
+  imageAlt: string;
+  status?: string;
+  tag?: string;
+}
+
 export interface DonationSubmission {
   amount: number;
   frequency: DonationFrequency;

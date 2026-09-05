@@ -4,9 +4,10 @@ import { ShieldCheck, PhoneCall, Heart } from 'lucide-react';
 interface HeaderProps {
   onDonateClick?: () => void;
   onWhatWeDoClick?: () => void;
+  onStoriesClick?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onDonateClick, onWhatWeDoClick }) => {
+export const Header: React.FC<HeaderProps> = ({ onDonateClick, onWhatWeDoClick, onStoriesClick }) => {
   return (
     <header className="relative z-30 w-full px-4 sm:px-8 lg:px-12 py-4 border-b border-gray-100 bg-white/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
@@ -32,7 +33,7 @@ export const Header: React.FC<HeaderProps> = ({ onDonateClick, onWhatWeDoClick }
         </div>
 
         {/* Navigation & Fast Action */}
-        <div className="flex items-center gap-3 sm:gap-5">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={onWhatWeDoClick}
             className="hidden sm:inline-flex items-center text-xs font-bold text-gray-600 hover:text-[#15803D] transition-colors cursor-pointer px-3.5 py-2 rounded-full hover:bg-gray-100 border border-transparent hover:border-gray-200"
@@ -40,10 +41,17 @@ export const Header: React.FC<HeaderProps> = ({ onDonateClick, onWhatWeDoClick }
             What We Do
           </button>
 
+          <button
+            onClick={onStoriesClick}
+            className="hidden sm:inline-flex items-center text-xs font-bold text-gray-600 hover:text-[#15803D] transition-colors cursor-pointer px-3.5 py-2 rounded-full hover:bg-gray-100 border border-transparent hover:border-gray-200"
+          >
+            Stories
+          </button>
+
           <div className="hidden lg:flex items-center gap-2 text-xs text-gray-600 bg-gray-50 border border-gray-200/80 px-3.5 py-1.5 rounded-full">
             <PhoneCall className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
             <span>
-              <span className="text-gray-400 font-medium">24/7 Rescue Dispatch:</span>{' '}
+              <span className="text-gray-400 font-medium">24/7 Rescue:</span>{' '}
               <strong className="text-[#1A1A1A] font-semibold">1-800-SAFE-PAW</strong>
             </span>
           </div>
