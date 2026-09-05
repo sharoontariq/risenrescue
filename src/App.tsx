@@ -7,13 +7,15 @@ import { WhatWeDoSection } from './components/WhatWeDoSection';
 import { StoriesSection } from './components/StoriesSection';
 import { GalleryPage } from './components/GalleryPage';
 import { AdminPanel } from './components/AdminPanel';
+import { AboutUsPage } from './components/AboutUsPage';
+import { FutureGoalsPage } from './components/FutureGoalsPage';
 import { Footer } from './components/Footer';
 import { CAROUSEL_SLIDES } from './data/carouselData';
 import { CarouselSlide, DonationSubmission, GalleryItem } from './types';
 import { ShieldCheck, Heart, Sparkles, Award, ArrowUp } from 'lucide-react';
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'gallery' | 'admin'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'gallery' | 'admin' | 'about' | 'goals'>('home');
   const [currentSlide, setCurrentSlide] = useState<CarouselSlide>(CAROUSEL_SLIDES[0]);
   const [activeTab, setActiveTab] = useState<'carousel' | 'donate'>('carousel');
   const [completedDonation, setCompletedDonation] = useState<DonationSubmission | null>(null);
@@ -68,7 +70,7 @@ export default function App() {
   }, []);
 
   const handleHeroScroll = () => {
-    if (currentPage === 'gallery' || currentPage === 'admin') {
+    if (currentPage !== 'home') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -81,6 +83,16 @@ export default function App() {
 
   const handleNavigateHome = () => {
     setCurrentPage('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateAbout = () => {
+    setCurrentPage('about');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateGoals = () => {
+    setCurrentPage('goals');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -141,6 +153,8 @@ export default function App() {
       <Header 
         currentPage={currentPage}
         onHomeClick={handleNavigateHome}
+        onAboutClick={handleNavigateAbout}
+        onGoalsClick={handleNavigateGoals}
         onGalleryClick={handleNavigateGallery}
         onAdminClick={handleNavigateAdmin}
         onDonateClick={() => handleQuickDonateFocus()} 
@@ -163,6 +177,22 @@ export default function App() {
           galleryItems={galleryItems}
           onBackToHome={handleNavigateHome}
           onOpenAdmin={handleNavigateAdmin}
+        />
+      ) : currentPage === 'about' ? (
+        /* About Us Page */
+        <AboutUsPage
+          onBackToHome={handleNavigateHome}
+          onNavigateGallery={handleNavigateGallery}
+          onNavigateGoals={handleNavigateGoals}
+          onDonateClick={() => handleQuickDonateFocus()}
+        />
+      ) : currentPage === 'goals' ? (
+        /* Future Goals Page */
+        <FutureGoalsPage
+          onBackToHome={handleNavigateHome}
+          onNavigateAbout={handleNavigateAbout}
+          onNavigateGallery={handleNavigateGallery}
+          onDonateClick={() => handleQuickDonateFocus()}
         />
       ) : (
         /* Home Page Sections */
@@ -262,6 +292,8 @@ export default function App() {
       {/* Comprehensive Sanctuary Footer with Social Media, Email, Phone & Address Sections */}
       <Footer
         onNavigateHome={handleNavigateHome}
+        onNavigateAbout={handleNavigateAbout}
+        onNavigateGoals={handleNavigateGoals}
         onNavigateGallery={handleNavigateGallery}
         onNavigateAdmin={handleNavigateAdmin}
         onDonateClick={() => handleQuickDonateFocus()}
@@ -288,7 +320,7 @@ export default function App() {
       >
         <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-y-1 transition-transform" />
         <span className="tracking-wide">
-          {currentPage === 'gallery' ? 'Back to Top' : 'Back to Hero'}
+          {currentPage === 'home' ? 'Back to Hero' : 'Back to Top'}
         </span>
       </button>
     </div>

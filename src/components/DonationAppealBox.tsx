@@ -68,15 +68,15 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
   return (
     <div 
       id="donation-appeal-box" 
-      className="w-full bg-white rounded-[28px] sm:rounded-[32px] border border-gray-100 shadow-[0_15px_35px_rgba(0,0,0,0.07)] p-5 sm:p-6 lg:p-7 transition-all"
+      className="w-full bg-white rounded-[24px] sm:rounded-[32px] border border-gray-100 shadow-[0_15px_35px_rgba(0,0,0,0.07)] p-4 sm:p-6 lg:p-7 transition-all"
     >
       {/* Header */}
-      <div className="flex items-center gap-3 mb-3 sm:mb-4">
-        <div className="w-9 h-9 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
+      <div className="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-4">
+        <div className="w-8 h-8 sm:w-9 sm:h-9 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
           <Heart className="w-4 h-4 fill-orange-600 text-orange-600" />
         </div>
         <div>
-          <h3 className="font-black text-lg sm:text-xl text-[#1A1A1A] tracking-tight leading-tight">
+          <h3 className="font-black text-base sm:text-xl text-[#1A1A1A] tracking-tight leading-tight">
             Fuel Our Mission
           </h3>
           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
@@ -85,17 +85,17 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
         </div>
       </div>
 
-      <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-4">
+      <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-3.5 sm:mb-4">
         Your support provides emergency surgery, meals, and sanctuary care for {activeAnimalName} in need.
       </p>
 
-      <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-3.5">
+      <form onSubmit={handleSubmit} className="space-y-2.5 sm:space-y-3.5">
         {/* Simple Frequency Toggle */}
         <div className="bg-gray-100 p-1 rounded-xl grid grid-cols-2 gap-1 text-xs font-bold">
           <button
             type="button"
             onClick={() => setFrequency('monthly')}
-            className={`py-2 rounded-lg transition-all cursor-pointer ${
+            className={`py-2 rounded-lg transition-all cursor-pointer touch-manipulation text-center ${
               frequency === 'monthly'
                 ? 'bg-white text-[#15803D] shadow-sm font-black'
                 : 'text-gray-500 hover:text-[#1A1A1A]'
@@ -106,7 +106,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
           <button
             type="button"
             onClick={() => setFrequency('once')}
-            className={`py-2 rounded-lg transition-all cursor-pointer ${
+            className={`py-2 rounded-lg transition-all cursor-pointer touch-manipulation text-center ${
               frequency === 'once'
                 ? 'bg-white text-[#15803D] shadow-sm font-black'
                 : 'text-gray-500 hover:text-[#1A1A1A]'
@@ -117,7 +117,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
         </div>
 
         {/* Preset Amounts Grid */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
           {PRESET_AMOUNTS.map((amt) => {
             const isSelected = !isCustom && selectedAmount === amt;
             return (
@@ -125,7 +125,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                 key={amt}
                 type="button"
                 onClick={() => handleSelectPreset(amt)}
-                className={`py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-black transition-all cursor-pointer border-2 ${
+                className={`py-2 sm:py-3 rounded-xl text-xs sm:text-base font-black transition-all cursor-pointer border-2 touch-manipulation ${
                   isSelected
                     ? 'border-[#15803D] bg-green-50 text-[#15803D] shadow-sm scale-[1.02]'
                     : 'border-gray-100 bg-white text-[#1A1A1A] hover:border-[#15803D] hover:text-[#15803D]'

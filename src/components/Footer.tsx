@@ -12,6 +12,8 @@ import {
 
 interface FooterProps {
   onNavigateHome: () => void;
+  onNavigateAbout?: () => void;
+  onNavigateGoals?: () => void;
   onNavigateGallery: () => void;
   onNavigateAdmin: () => void;
   onDonateClick: () => void;
@@ -21,6 +23,8 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({
   onNavigateHome,
+  onNavigateAbout,
+  onNavigateGoals,
   onNavigateGallery,
   onNavigateAdmin,
   onDonateClick
@@ -144,11 +148,27 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
 
             {/* Quick Links */}
-            <div className="flex items-center gap-3 pt-2 text-xs">
+            <div className="flex items-center gap-2.5 pt-2 text-xs flex-wrap">
               <button onClick={onNavigateHome} className="hover:text-white transition-colors cursor-pointer">
                 Home
               </button>
               <span>•</span>
+              {onNavigateAbout && (
+                <>
+                  <button onClick={onNavigateAbout} className="hover:text-white transition-colors cursor-pointer">
+                    About Us
+                  </button>
+                  <span>•</span>
+                </>
+              )}
+              {onNavigateGoals && (
+                <>
+                  <button onClick={onNavigateGoals} className="hover:text-white transition-colors cursor-pointer">
+                    Future Goals
+                  </button>
+                  <span>•</span>
+                </>
+              )}
               <button onClick={onNavigateGallery} className="hover:text-white transition-colors cursor-pointer">
                 Gallery
               </button>
