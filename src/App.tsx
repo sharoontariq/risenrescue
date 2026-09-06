@@ -12,7 +12,7 @@ import { FutureGoalsPage } from './components/FutureGoalsPage';
 import { Footer } from './components/Footer';
 import { CAROUSEL_SLIDES } from './data/carouselData';
 import { CarouselSlide, DonationSubmission, GalleryItem } from './types';
-import { ShieldCheck, Heart, Sparkles, Award, ArrowUp } from 'lucide-react';
+import { Heart, Sparkles, ArrowUp } from 'lucide-react';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<'home' | 'gallery' | 'admin' | 'about' | 'goals'>('home');
@@ -198,29 +198,29 @@ export default function App() {
         /* Home Page Sections */
         <>
           {/* Main Hero Stage */}
-          <main ref={heroRef} className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4.5 flex flex-col justify-center">
+          <main ref={heroRef} className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col justify-center">
             {/* Mobile View Toggle (Visible only on mobile/tablet) */}
-            <div className="lg:hidden flex items-center justify-center p-1.5 bg-gray-100 border border-gray-200 rounded-2xl mb-3 text-xs font-bold">
+            <div className="lg:hidden flex items-center justify-center p-1 bg-gray-100 border border-gray-200 rounded-xl mb-3 text-xs font-bold">
               <button
                 onClick={() => setActiveTab('carousel')}
-                className={`flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'carousel'
-                    ? 'bg-[#15803D] text-white shadow-sm'
+                    ? 'bg-[#15803D] text-white shadow-xs'
                     : 'text-gray-600 hover:text-[#1A1A1A]'
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-4 h-4" />
                 <span>Animal Stories</span>
               </button>
               <button
                 onClick={() => setActiveTab('donate')}
-                className={`flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'donate'
-                    ? 'bg-[#15803D] text-white shadow-sm'
+                    ? 'bg-[#15803D] text-white shadow-xs'
                     : 'text-gray-600 hover:text-[#1A1A1A]'
                 }`}
               >
-                <Heart className="w-3.5 h-3.5 fill-current" />
+                <Heart className="w-4 h-4 fill-current" />
                 <span>Donation Appeal</span>
               </button>
             </div>
@@ -250,29 +250,6 @@ export default function App() {
                   activeAnimalName={selectedAppealTarget || currentSlide.animalName}
                   onSuccessfulDonation={(submission) => setCompletedDonation(submission)}
                 />
-              </div>
-            </div>
-
-            {/* Hero Trust & Accountability Bar */}
-            <div className="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-gray-200/80 flex flex-wrap items-center justify-between gap-3 text-[11px] sm:text-xs text-gray-500 font-medium">
-              <div className="flex items-center gap-4 flex-wrap">
-                <span className="flex items-center gap-1.5 text-gray-700 font-semibold">
-                  <Award className="w-4 h-4 text-amber-500" />
-                  Charity Navigator 4/4 Star Rated (98.6%)
-                </span>
-                <span className="hidden sm:inline text-gray-300">•</span>
-                <span className="flex items-center gap-1.5 text-gray-700 font-semibold">
-                  <ShieldCheck className="w-4 h-4 text-[#15803D]" />
-                  GuideStar Platinum Transparency
-                </span>
-                <span className="hidden md:inline text-gray-300">•</span>
-                <span className="hidden md:inline text-gray-500">
-                  88¢ of every dollar directly funds animal surgery, rescue nutrition & permanent sanctuary
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span className="text-[#15803D] font-bold">501(c)(3) Non-Profit</span>
               </div>
             </div>
           </main>

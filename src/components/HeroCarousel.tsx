@@ -120,7 +120,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
 
   return (
     <div 
-      className="relative w-full h-full min-h-[320px] xs:min-h-[360px] sm:min-h-[420px] lg:min-h-[500px] flex items-center justify-center overflow-hidden rounded-[24px] sm:rounded-[36px] bg-[#E5E7EB] shadow-xl border-2 sm:border-4 border-white group select-none"
+      className="relative w-full h-full min-h-[300px] xs:min-h-[340px] sm:min-h-[400px] lg:min-h-[450px] flex items-center justify-center overflow-hidden rounded-[24px] sm:rounded-[32px] bg-[#E5E7EB] shadow-lg border border-white sm:border-2 group select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onTouchStart={handleTouchStart}
@@ -151,25 +151,25 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
       {/* Prev / Next Floating Arrow Buttons (Icon only, responsive touch targets) */}
       <button
         onClick={goToPrev}
-        className="absolute left-2.5 sm:left-4 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center transition-all cursor-pointer opacity-85 hover:opacity-100 hover:scale-105 active:scale-95 touch-manipulation"
+        className="absolute left-2.5 sm:left-4 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md border border-white/20 shadow-md flex items-center justify-center transition-all cursor-pointer opacity-85 hover:opacity-100 hover:scale-105 active:scale-95 touch-manipulation"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+        <ChevronLeft className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
       </button>
 
       <button
         onClick={goToNext}
-        className="absolute right-2.5 sm:right-4 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center transition-all cursor-pointer opacity-85 hover:opacity-100 hover:scale-105 active:scale-95 touch-manipulation"
+        className="absolute right-2.5 sm:right-4 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-md border border-white/20 shadow-md flex items-center justify-center transition-all cursor-pointer opacity-85 hover:opacity-100 hover:scale-105 active:scale-95 touch-manipulation"
         aria-label="Next slide"
       >
-        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+        <ChevronRight className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
       </button>
 
       {/* Bottom Minimal Floating Navigation Pill (Geometric indicators & play/pause, zero text) */}
-      <div className="absolute bottom-3 sm:bottom-5 z-20 flex items-center justify-center pointer-events-auto max-w-[95%]">
-        <div className="flex items-center gap-1.5 sm:gap-2.5 bg-black/50 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-full border border-white/25 shadow-xl">
+      <div className="absolute bottom-2.5 sm:bottom-4 z-20 flex items-center justify-center pointer-events-auto max-w-[95%]">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-black/50 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/25 shadow-lg">
           {/* Geometric Slide Indicators */}
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex items-center gap-1">
             {CAROUSEL_SLIDES.map((slide, idx) => {
               const isCurrent = idx === currentIndex;
               return (
@@ -182,8 +182,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
                   <div
                     className={`h-1 sm:h-1.5 rounded-full transition-all duration-300 ${
                       isCurrent
-                        ? 'w-5 sm:w-7 bg-white shadow-sm'
-                        : 'w-1.5 sm:w-2 bg-white/45 hover:bg-white/75'
+                        ? 'w-4 sm:w-6 bg-white shadow-sm'
+                        : 'w-1.5 bg-white/45 hover:bg-white/75'
                     }`}
                   />
                 </button>
@@ -191,10 +191,10 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
             })}
           </div>
 
-          <div className="w-px h-3 bg-white/25 mx-0.5" />
+          <div className="w-px h-2.5 bg-white/25 mx-0.5" />
 
           {/* Progress Mini Bar */}
-          <div className="w-8 sm:w-12 h-1 bg-white/20 rounded-full overflow-hidden">
+          <div className="w-7 sm:w-10 h-1 bg-white/20 rounded-full overflow-hidden">
             <div
               className="h-full bg-white/90 rounded-full transition-all duration-100 ease-linear"
               style={{ width: `${progress}%` }}
@@ -207,7 +207,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
             className="p-1 rounded-full text-white/80 hover:text-white transition-colors cursor-pointer touch-manipulation"
             aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
           >
-            {isPlaying ? <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> : <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5" />}
+            {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
           </button>
         </div>
       </div>

@@ -1,199 +1,348 @@
 import React, { useState } from 'react';
-import { Heart, Lock } from 'lucide-react';
-import { DonationFrequency, DonationSubmission } from '../types';
+import { 
+  Heart, 
+  Lock, 
+  Globe, 
+  Building2, 
+  Copy, 
+  Check, 
+  ShieldCheck,
+  Info
+} from 'lucide-react';
+import { DonationSubmission } from '../types';
 
 interface DonationAppealBoxProps {
-  onSuccessfulDonation: (submission: DonationSubmission) => void;
+  onSuccessfulDonation?: (submission: DonationSubmission) => void;
   activeAnimalName?: string;
 }
 
-const PRESET_AMOUNTS = [15, 35, 75, 150];
+interface IntlBankInfo {
+  bankName: string;
+  accountTitle: string;
+  iban: string;
+  swiftBic: string;
+  routingNumber: string;
+  bankCountry: string;
+  currencies: string;
+}
+
+interface LocalBankInfo {
+  bankName: string;
+  accountTitle: string;
+  accountNumber: string;
+  branchCode: string;
+  routingNumber: string;
+  transferRef: string;
+}
+
+const INTL_BANK: IntlBankInfo = {
+  bankName: 'Bank Alfalah',
+  accountTitle: 'Sharoon Tariq Daim',
+  iban: 'PK96 ALFH 0106 0010 1002 6840',
+  swiftBic: 'ALFHPKKAXXX',
+  routingNumber: '0106',
+  bankCountry: 'United States',
+  currencies: 'USD, EUR, GBP, CAD'
+};
+
+const LOCAL_BANK: LocalBankInfo = {
+  bankName: 'Community First Bank of Colorado',
+  accountTitle: 'Rise & Rescue Local Sanctuary Care',
+  accountNumber: '8492-3019-4820-11',
+  branchCode: '084-210',
+  routingNumber: '102000076',
+  transferRef: 'RESCUE-GIFT'
+};
 
 export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
-  onSuccessfulDonation,
   activeAnimalName = 'rescued animals'
 }) => {
-  const [frequency, setFrequency] = useState<DonationFrequency>('monthly');
-  const [selectedAmount, setSelectedAmount] = useState<number>(35);
-  const [customAmount, setCustomAmount] = useState<string>('');
-  const [isCustom, setIsCustom] = useState<boolean>(false);
-  const [donorEmail, setDonorEmail] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [donationType, setDonationType] = useState<'international' | 'local'>('international');
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  const currentAmount = isCustom ? (parseFloat(customAmount) || 0) : selectedAmount;
-
-  const handleSelectPreset = (amount: number) => {
-    setSelectedAmount(amount);
-    setIsCustom(false);
-    setCustomAmount('');
-    setErrorMessage(null);
-  };
-
-  const handleCustomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/[^0-9.]/g, '');
-    setCustomAmount(val);
-    setIsCustom(true);
-    setErrorMessage(null);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (currentAmount < 5) {
-      setErrorMessage('Please enter a minimum donation of $5.');
-      return;
-    }
-
-    setErrorMessage(null);
-    setIsSubmitting(true);
-
-    setTimeout(() => {
-      setIsSubmitting(false);
-      const submission: DonationSubmission = {
-        amount: currentAmount,
-        frequency,
-        fund: 'Emergency Medical & Sanctuary Fund',
-        donorName: 'Compassionate Supporter',
-        donorEmail: donorEmail.trim() || 'supporter@pawhaven.org',
-        isTribute: false,
-        coverFees: true,
-        paymentMethod: 'Credit Card',
-        timestamp: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        receiptNumber: `PH-${Math.floor(100000 + Math.random() * 900000)}`
-      };
-      onSuccessfulDonation(submission);
-    }, 600);
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(label);
+    setTimeout(() => setCopiedField(null), 2000);
   };
 
   return (
     <div 
       id="donation-appeal-box" 
-      className="w-full bg-white rounded-[24px] sm:rounded-[32px] border border-gray-100 shadow-[0_15px_35px_rgba(0,0,0,0.07)] p-4 sm:p-6 lg:p-7 transition-all"
+      className="w-full bg-white rounded-[22px] sm:rounded-[30px] border border-gray-100 shadow-[0_10px_25px_rgba(0,0,0,0.06)] p-4 sm:p-6 transition-all flex flex-col justify-between"
     >
-      {/* Header */}
-      <div className="flex items-center gap-2.5 sm:gap-3 mb-2.5 sm:mb-4">
-        <div className="w-8 h-8 sm:w-9 sm:h-9 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
-          <Heart className="w-4 h-4 fill-orange-600 text-orange-600" />
+      <div>
+        {/* Header */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-green-100 text-[#15803D] rounded-xl flex items-center justify-center shrink-0">
+              <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-[#15803D] text-[#15803D]" />
+            </div>
+            <div>
+              <h3 className="font-black text-base sm:text-xl text-[#1A1A1A] tracking-tight leading-tight">
+                Direct Bank Donation
+              </h3>
+              <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">
+                Support {activeAnimalName}
+              </p>
+            </div>
+          </div>
+
+          <span className="text-[10.5px] font-bold text-[#15803D] bg-green-50 border border-green-200 px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Official Account
+          </span>
         </div>
-        <div>
-          <h3 className="font-black text-base sm:text-xl text-[#1A1A1A] tracking-tight leading-tight">
-            Fuel Our Mission
-          </h3>
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
-            Donation Appeal
-          </p>
+
+        {/* 2 Primary Options: International vs Local Bank Transfer */}
+        <div className="p-1 bg-gray-100 rounded-xl grid grid-cols-2 gap-1.5 mb-3 text-xs sm:text-sm font-bold">
+          <button
+            type="button"
+            onClick={() => setDonationType('international')}
+            className={`py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              donationType === 'international'
+                ? 'bg-white text-[#15803D] shadow-xs font-black'
+                : 'text-gray-600 hover:text-[#1A1A1A]'
+            }`}
+          >
+            <Globe className="w-4 h-4 shrink-0" />
+            <span>International</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setDonationType('local')}
+            className={`py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              donationType === 'local'
+                ? 'bg-white text-[#15803D] shadow-xs font-black'
+                : 'text-gray-600 hover:text-[#1A1A1A]'
+            }`}
+          >
+            <Building2 className="w-4 h-4 shrink-0" />
+            <span>Local Donation</span>
+          </button>
+        </div>
+
+        {/* Display Bank Account Details Card */}
+        <div className="bg-gray-50 border border-gray-200/90 rounded-xl p-3.5 sm:p-4 mb-3 text-xs sm:text-sm space-y-2.5">
+          <div className="flex items-center justify-between border-b border-gray-200/70 pb-2">
+            <span className="font-black text-[#1A1A1A] flex items-center gap-1.5 text-sm sm:text-base">
+              {donationType === 'international' ? (
+                <>
+                  <Globe className="w-3.5 h-3.5 text-[#15803D]" />
+                  International Wire Transfer
+                </>
+              ) : (
+                <>
+                  <Building2 className="w-3.5 h-3.5 text-[#15803D]" />
+                  Local Bank Deposit
+                </>
+              )}
+            </span>
+            <span className="text-[9.5px] font-bold text-[#15803D] bg-green-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <ShieldCheck className="w-2.5 h-2.5" />
+              Verified
+            </span>
+          </div>
+
+          {donationType === 'international' ? (
+            /* International Fields */
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between items-center text-[11.5px]">
+                <span className="text-gray-500">Bank Name:</span>
+                <span className="font-semibold text-gray-800 text-right">
+                  {INTL_BANK.bankName}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center text-[11.5px]">
+                <span className="text-gray-500">Beneficiary:</span>
+                <span className="font-semibold text-gray-800 text-right">
+                  {INTL_BANK.accountTitle}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-200/80 shadow-2xs">
+                <div>
+                  <span className="text-[9px] text-gray-400 font-bold block">IBAN / ACCOUNT #</span>
+                  <span className="font-mono font-bold text-gray-900 tracking-tight text-xs sm:text-sm">
+                    {INTL_BANK.iban}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(INTL_BANK.iban, 'iban')}
+                  className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                  title="Copy IBAN"
+                >
+                  {copiedField === 'iban' ? (
+                    <Check className="w-3.5 h-3.5 text-[#15803D]" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5">
+                <div className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-gray-200/80 shadow-2xs">
+                  <div>
+                    <span className="text-[8.5px] text-gray-400 font-bold block">SWIFT / BIC</span>
+                    <span className="font-mono font-bold text-gray-900 text-xs">
+                      {INTL_BANK.swiftBic}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(INTL_BANK.swiftBic, 'swift')}
+                    className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                    title="Copy SWIFT code"
+                  >
+                    {copiedField === 'swift' ? (
+                      <Check className="w-3 h-3 text-[#15803D]" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
+
+                <div className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-gray-200/80 shadow-2xs">
+                  <div>
+                    <span className="text-[8.5px] text-gray-400 font-bold block">BRANCH CODE</span>
+                    <span className="font-mono font-bold text-gray-900 text-xs">
+                      {INTL_BANK.routingNumber}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(INTL_BANK.routingNumber, 'routing')}
+                    className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                    title="Copy Branch Code"
+                  >
+                    {copiedField === 'routing' ? (
+                      <Check className="w-3 h-3 text-[#15803D]" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center text-[10.5px] text-gray-500 pt-1 border-t border-gray-200/50">
+                <span>Accepted: <strong className="text-gray-700">{INTL_BANK.currencies}</strong></span>
+              </div>
+            </div>
+          ) : (
+            /* Local Fields */
+            <div className="space-y-1.5 text-xs">
+              <div className="flex justify-between items-center text-[11.5px]">
+                <span className="text-gray-500">Bank Name:</span>
+                <span className="font-semibold text-gray-800 text-right">
+                  {LOCAL_BANK.bankName}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center text-[11.5px]">
+                <span className="text-gray-500">Account Title:</span>
+                <span className="font-semibold text-gray-800 text-right">
+                  {LOCAL_BANK.accountTitle}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-200/80 shadow-2xs">
+                <div>
+                  <span className="text-[9px] text-gray-400 font-bold block">ACCOUNT NUMBER</span>
+                  <span className="font-mono font-bold text-gray-900 tracking-tight text-xs sm:text-sm">
+                    {LOCAL_BANK.accountNumber}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(LOCAL_BANK.accountNumber, 'account')}
+                  className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                  title="Copy Account Number"
+                >
+                  {copiedField === 'account' ? (
+                    <Check className="w-3.5 h-3.5 text-[#15803D]" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-1.5">
+                <div className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-gray-200/80 shadow-2xs">
+                  <div>
+                    <span className="text-[8.5px] text-gray-400 font-bold block">BRANCH CODE</span>
+                    <span className="font-mono font-bold text-gray-900 text-xs">
+                      {LOCAL_BANK.branchCode}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(LOCAL_BANK.branchCode, 'branch')}
+                    className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                    title="Copy Branch Code"
+                  >
+                    {copiedField === 'branch' ? (
+                      <Check className="w-3 h-3 text-[#15803D]" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
+
+                <div className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-gray-200/80 shadow-2xs">
+                  <div>
+                    <span className="text-[8.5px] text-gray-400 font-bold block">ROUTING / ACH</span>
+                    <span className="font-mono font-bold text-gray-900 text-xs">
+                      {LOCAL_BANK.routingNumber}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(LOCAL_BANK.routingNumber, 'localrouting')}
+                    className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                    title="Copy Routing Number"
+                  >
+                    {copiedField === 'localrouting' ? (
+                      <Check className="w-3 h-3 text-[#15803D]" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center text-[10.5px] text-gray-500 pt-1 border-t border-gray-200/50">
+                <span>Ref: <strong className="text-gray-800">{LOCAL_BANK.transferRef}</strong></span>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(LOCAL_BANK.transferRef, 'ref')}
+                  className="text-[10.5px] text-[#15803D] font-bold hover:underline cursor-pointer"
+                >
+                  {copiedField === 'ref' ? 'Copied!' : 'Copy Reference'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Transfer Instructions & Guidance */}
+        <div className="bg-green-50/70 border border-green-200/70 rounded-xl p-2.5 text-[11px] text-gray-700 space-y-1">
+          <div className="flex items-start gap-1.5">
+            <Info className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+            <p className="leading-snug">
+              Initiate a transfer directly via your online banking portal, mobile app, or branch counter.
+            </p>
+          </div>
         </div>
       </div>
 
-      <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mb-3.5 sm:mb-4">
-        Your support provides emergency surgery, meals, and sanctuary care for {activeAnimalName} in need.
-      </p>
-
-      <form onSubmit={handleSubmit} className="space-y-2.5 sm:space-y-3.5">
-        {/* Simple Frequency Toggle */}
-        <div className="bg-gray-100 p-1 rounded-xl grid grid-cols-2 gap-1 text-xs font-bold">
-          <button
-            type="button"
-            onClick={() => setFrequency('monthly')}
-            className={`py-2 rounded-lg transition-all cursor-pointer touch-manipulation text-center ${
-              frequency === 'monthly'
-                ? 'bg-white text-[#15803D] shadow-sm font-black'
-                : 'text-gray-500 hover:text-[#1A1A1A]'
-            }`}
-          >
-            Give Monthly
-          </button>
-          <button
-            type="button"
-            onClick={() => setFrequency('once')}
-            className={`py-2 rounded-lg transition-all cursor-pointer touch-manipulation text-center ${
-              frequency === 'once'
-                ? 'bg-white text-[#15803D] shadow-sm font-black'
-                : 'text-gray-500 hover:text-[#1A1A1A]'
-            }`}
-          >
-            Give One-Time
-          </button>
-        </div>
-
-        {/* Preset Amounts Grid */}
-        <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-          {PRESET_AMOUNTS.map((amt) => {
-            const isSelected = !isCustom && selectedAmount === amt;
-            return (
-              <button
-                key={amt}
-                type="button"
-                onClick={() => handleSelectPreset(amt)}
-                className={`py-2 sm:py-3 rounded-xl text-xs sm:text-base font-black transition-all cursor-pointer border-2 touch-manipulation ${
-                  isSelected
-                    ? 'border-[#15803D] bg-green-50 text-[#15803D] shadow-sm scale-[1.02]'
-                    : 'border-gray-100 bg-white text-[#1A1A1A] hover:border-[#15803D] hover:text-[#15803D]'
-                }`}
-              >
-                ${amt}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Custom Amount Input */}
-        <div className="relative">
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs sm:text-sm">
-            $
-          </span>
-          <input
-            type="text"
-            placeholder="Custom Amount"
-            value={customAmount}
-            onChange={handleCustomChange}
-            className={`w-full pl-7 pr-3.5 py-2.5 sm:py-3 bg-gray-50 rounded-xl text-xs sm:text-sm font-semibold transition-all text-[#1A1A1A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#15803D]/20 ${
-              isCustom ? 'border-2 border-[#15803D] bg-green-50/40' : 'border border-gray-200'
-            }`}
-          />
-        </div>
-
-        {/* Email Input for Tax Receipt */}
-        <div>
-          <input
-            type="email"
-            placeholder="Email for official tax receipt"
-            value={donorEmail}
-            onChange={(e) => setDonorEmail(e.target.value)}
-            className="w-full px-3.5 py-2.5 sm:py-3 bg-gray-50 rounded-xl text-xs sm:text-sm font-medium border border-gray-200 text-[#1A1A1A] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#15803D]/20"
-          />
-        </div>
-
-        {errorMessage && (
-          <p className="text-xs text-rose-600 font-semibold text-center">
-            {errorMessage}
-          </p>
-        )}
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting || currentAmount < 5}
-          className="w-full bg-[#F97316] hover:bg-orange-600 active:scale-[0.98] text-white py-3 sm:py-3.5 rounded-xl font-black text-sm sm:text-base shadow-[0_6px_16px_rgba(249,115,22,0.25)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSubmitting ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Processing...</span>
-            </div>
-          ) : (
-            <span>
-              Donate ${currentAmount > 0 ? currentAmount : '0'} {frequency === 'monthly' ? '/ Month' : 'Now'}
-            </span>
-          )}
-        </button>
-
-        {/* Minimal Footer */}
-        <div className="flex items-center justify-center gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-wider pt-0.5">
-          <Lock className="w-3 h-3 text-[#15803D]" />
-          <span>Secure & Encrypted • 100% Tax-Deductible</span>
-        </div>
-      </form>
+      {/* Footer Appeal Message */}
+      <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-center gap-1.5 text-[11px] sm:text-xs text-gray-600 font-medium text-center">
+        <Heart className="w-3.5 h-3.5 text-[#15803D] shrink-0 fill-[#15803D]/20" />
+        <span>Donate today. Save a life. Give an innocent soul a second chance.</span>
+      </div>
     </div>
   );
 };
