@@ -137,7 +137,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <div className="flex items-center gap-2.5">
               <button
                 onClick={onViewGallery}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#15803D] hover:bg-green-800 text-white transition-colors cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white transition-colors cursor-pointer shadow-2xs"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span>View Public Gallery</span>
@@ -150,8 +150,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 sm:mt-6 space-y-6">
         {/* Success Alert */}
         {notification && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded-xl flex items-center gap-2.5 text-green-800 text-xs sm:text-sm font-semibold shadow-2xs animate-fade-in">
-            <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+          <div className="p-3 bg-[#043E49]/10 border border-[#043E49]/20 rounded-xl flex items-center gap-2.5 text-[#043E49] text-xs sm:text-sm font-semibold shadow-2xs animate-fade-in">
+            <CheckCircle2 className="w-4 h-4 text-[#043E49] flex-shrink-0" />
             <span>{notification}</span>
           </div>
         )}
@@ -159,7 +159,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         {/* Upload Form Section */}
         <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-2xs">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 rounded-lg bg-green-100 text-[#15803D] flex items-center justify-center font-bold">
+            <div className="w-7 h-7 rounded-lg bg-[#043E49]/10 text-[#043E49] flex items-center justify-center font-bold">
               <Plus className="w-3.5 h-3.5" />
             </div>
             <div>
@@ -179,8 +179,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-xl p-4 sm:p-6 text-center transition-all cursor-pointer ${
                 isDragging
-                  ? 'border-[#15803D] bg-green-50/70 scale-[1.01]'
-                  : 'border-gray-200 hover:border-[#15803D]/60 hover:bg-gray-50/60'
+                  ? 'border-[#043E49] bg-[#043E49]/10 scale-[1.01]'
+                  : 'border-gray-200 hover:border-[#043E49]/60 hover:bg-gray-50/60'
               }`}
             >
               <input
@@ -193,7 +193,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
               {previewImage ? (
                 <div className="flex flex-col items-center gap-3">
-                  <div className="relative rounded-xl overflow-hidden max-h-56 w-auto border-2 border-green-600 shadow-sm">
+                  <div className="relative rounded-xl overflow-hidden max-h-56 w-auto border-2 border-[#043E49] shadow-sm">
                     <img
                       src={previewImage}
                       alt="Preview"
@@ -239,7 +239,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   placeholder="e.g. Golden Retriever Playtime"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#15803D]/20 focus:border-[#15803D]"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49]"
                 />
               </div>
 
@@ -252,7 +252,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   placeholder="e.g. Rescued and flourishing at the sanctuary"
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#15803D]/20 focus:border-[#15803D]"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49]"
                 />
               </div>
             </div>
@@ -261,7 +261,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               <button
                 type="submit"
                 disabled={!previewImage}
-                className="px-4.5 py-2 rounded-lg text-xs sm:text-sm font-bold bg-[#15803D] hover:bg-green-800 disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                className="px-4.5 py-2 rounded-lg text-xs sm:text-sm font-bold bg-[#043E49] hover:bg-[#032f38] disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <Upload className="w-3.5 h-3.5" />
                 <span>Upload & Publish to Gallery</span>

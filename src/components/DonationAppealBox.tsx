@@ -75,8 +75,8 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-green-100 text-[#15803D] rounded-xl flex items-center justify-center shrink-0">
-              <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-[#15803D] text-[#15803D]" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#043E49]/10 text-[#043E49] rounded-xl flex items-center justify-center shrink-0">
+              <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-[#043E49] text-[#043E49]" />
             </div>
             <div>
               <h3 className="font-black text-base sm:text-xl text-[#1A1A1A] tracking-tight leading-tight">
@@ -88,7 +88,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
             </div>
           </div>
 
-          <span className="text-[10.5px] font-bold text-[#15803D] bg-green-50 border border-green-200 px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
+          <span className="text-[10.5px] font-bold text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
             <ShieldCheck className="w-3.5 h-3.5" />
             Official Account
           </span>
@@ -101,7 +101,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
             onClick={() => setDonationType('international')}
             className={`py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               donationType === 'international'
-                ? 'bg-white text-[#15803D] shadow-xs font-black'
+                ? 'bg-white text-[#043E49] shadow-xs font-black'
                 : 'text-gray-600 hover:text-[#1A1A1A]'
             }`}
           >
@@ -114,7 +114,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
             onClick={() => setDonationType('local')}
             className={`py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
               donationType === 'local'
-                ? 'bg-white text-[#15803D] shadow-xs font-black'
+                ? 'bg-white text-[#043E49] shadow-xs font-black'
                 : 'text-gray-600 hover:text-[#1A1A1A]'
             }`}
           >
@@ -129,17 +129,17 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
             <span className="font-black text-[#1A1A1A] flex items-center gap-1.5 text-sm sm:text-base">
               {donationType === 'international' ? (
                 <>
-                  <Globe className="w-3.5 h-3.5 text-[#15803D]" />
+                  <Globe className="w-3.5 h-3.5 text-[#043E49]" />
                   International Wire Transfer
                 </>
               ) : (
                 <>
-                  <Building2 className="w-3.5 h-3.5 text-[#15803D]" />
+                  <Building2 className="w-3.5 h-3.5 text-[#043E49]" />
                   Local Bank Deposit
                 </>
               )}
             </span>
-            <span className="text-[9.5px] font-bold text-[#15803D] bg-green-100 px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span className="text-[9.5px] font-bold text-[#043E49] bg-[#043E49]/10 px-2 py-0.5 rounded-full flex items-center gap-1">
               <ShieldCheck className="w-2.5 h-2.5" />
               Verified
             </span>
@@ -172,11 +172,11 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                 <button
                   type="button"
                   onClick={() => copyToClipboard(INTL_BANK.iban, 'iban')}
-                  className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
                   title="Copy IBAN"
                 >
                   {copiedField === 'iban' ? (
-                    <Check className="w-3.5 h-3.5 text-[#15803D]" />
+                    <Check className="w-3.5 h-3.5 text-[#043E49]" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
@@ -194,11 +194,11 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                   <button
                     type="button"
                     onClick={() => copyToClipboard(INTL_BANK.swiftBic, 'swift')}
-                    className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
                     title="Copy SWIFT code"
                   >
                     {copiedField === 'swift' ? (
-                      <Check className="w-3 h-3 text-[#15803D]" />
+                      <Check className="w-3 h-3 text-[#043E49]" />
                     ) : (
                       <Copy className="w-3 h-3" />
                     )}
@@ -215,11 +215,11 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                   <button
                     type="button"
                     onClick={() => copyToClipboard(INTL_BANK.routingNumber, 'routing')}
-                    className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
                     title="Copy Branch Code"
                   >
                     {copiedField === 'routing' ? (
-                      <Check className="w-3 h-3 text-[#15803D]" />
+                      <Check className="w-3 h-3 text-[#043E49]" />
                     ) : (
                       <Copy className="w-3 h-3" />
                     )}
@@ -258,11 +258,11 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                 <button
                   type="button"
                   onClick={() => copyToClipboard(LOCAL_BANK.accountNumber, 'account')}
-                  className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
                   title="Copy Account Number"
                 >
                   {copiedField === 'account' ? (
-                    <Check className="w-3.5 h-3.5 text-[#15803D]" />
+                    <Check className="w-3.5 h-3.5 text-[#043E49]" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
@@ -280,11 +280,11 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                   <button
                     type="button"
                     onClick={() => copyToClipboard(LOCAL_BANK.branchCode, 'branch')}
-                    className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
                     title="Copy Branch Code"
                   >
                     {copiedField === 'branch' ? (
-                      <Check className="w-3 h-3 text-[#15803D]" />
+                      <Check className="w-3 h-3 text-[#043E49]" />
                     ) : (
                       <Copy className="w-3 h-3" />
                     )}
@@ -301,11 +301,11 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                   <button
                     type="button"
                     onClick={() => copyToClipboard(LOCAL_BANK.routingNumber, 'localrouting')}
-                    className="p-1 rounded-md text-gray-500 hover:text-[#15803D] hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
                     title="Copy Routing Number"
                   >
                     {copiedField === 'localrouting' ? (
-                      <Check className="w-3 h-3 text-[#15803D]" />
+                      <Check className="w-3 h-3 text-[#043E49]" />
                     ) : (
                       <Copy className="w-3 h-3" />
                     )}
@@ -318,7 +318,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                 <button
                   type="button"
                   onClick={() => copyToClipboard(LOCAL_BANK.transferRef, 'ref')}
-                  className="text-[10.5px] text-[#15803D] font-bold hover:underline cursor-pointer"
+                  className="text-[10.5px] text-[#043E49] font-bold hover:underline cursor-pointer"
                 >
                   {copiedField === 'ref' ? 'Copied!' : 'Copy Reference'}
                 </button>
@@ -328,9 +328,9 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
         </div>
 
         {/* Transfer Instructions & Guidance */}
-        <div className="bg-green-50/70 border border-green-200/70 rounded-xl p-2.5 text-[11px] text-gray-700 space-y-1">
+        <div className="bg-[#043E49]/5 border border-[#043E49]/15 rounded-xl p-2.5 text-[11px] text-gray-700 space-y-1">
           <div className="flex items-start gap-1.5">
-            <Info className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+            <Info className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
             <p className="leading-snug">
               Initiate a transfer directly via your online banking portal, mobile app, or branch counter.
             </p>
@@ -340,7 +340,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
 
       {/* Footer Appeal Message */}
       <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-center gap-1.5 text-[11px] sm:text-xs text-gray-600 font-medium text-center">
-        <Heart className="w-3.5 h-3.5 text-[#15803D] shrink-0 fill-[#15803D]/20" />
+        <Heart className="w-3.5 h-3.5 text-[#043E49] shrink-0 fill-[#043E49]/20" />
         <span>Donate today. Save a life. Give an innocent soul a second chance.</span>
       </div>
     </div>

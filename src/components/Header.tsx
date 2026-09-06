@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PhoneCall, Heart, Images, Menu, X } from 'lucide-react';
+import { RiseAndRescueLogo } from './RiseAndRescueLogo';
 
 interface HeaderProps {
   currentPage?: 'home' | 'gallery' | 'admin' | 'about' | 'goals';
@@ -39,17 +40,17 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={onHomeClick}
           className="flex items-center gap-2.5 sm:gap-3 cursor-pointer group flex-shrink-0"
         >
-          <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#15803D] group-hover:bg-green-800 rounded-xl flex items-center justify-center text-white shadow-xs flex-shrink-0 transition-colors">
-            <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-white text-white" />
+          <div className="w-8 h-8 sm:w-9.5 sm:h-9.5 flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
+            <RiseAndRescueLogo className="w-full h-full" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-base sm:text-lg lg:text-xl font-black tracking-tight text-[#1A1A1A]">
-                RISE & RESCUE
+              <span className="text-sm sm:text-base lg:text-lg font-black tracking-tight text-[#1A1A1A]">
+                RISE & RESCUE ANIMAL WELFARE
               </span>
             </div>
             <p className="text-[10px] sm:text-[11.5px] text-gray-500 hidden sm:block leading-tight">
-              Sanctuary & Wildlife Medical Rehabilitation
+              Stray Animal Care & Rehabilitation
             </p>
           </div>
         </div>
@@ -60,8 +61,8 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onHomeClick}
             className={`text-xs sm:text-sm font-bold transition-all cursor-pointer px-3.5 py-1.5 rounded-full border ${
               currentPage === 'home'
-                ? 'bg-green-50 text-[#15803D] border-green-200 font-black'
-                : 'text-gray-600 hover:text-[#15803D] border-transparent hover:bg-gray-100'
+                ? 'bg-[#043E49]/10 text-[#043E49] border-[#043E49]/20 font-black'
+                : 'text-gray-600 hover:text-[#043E49] border-transparent hover:bg-gray-100'
             }`}
           >
             Home
@@ -71,8 +72,8 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onAboutClick}
             className={`text-xs sm:text-sm font-bold transition-all cursor-pointer px-3.5 py-1.5 rounded-full border ${
               currentPage === 'about'
-                ? 'bg-green-50 text-[#15803D] border-green-200 font-black'
-                : 'text-gray-600 hover:text-[#15803D] border-transparent hover:bg-gray-100'
+                ? 'bg-[#043E49]/10 text-[#043E49] border-[#043E49]/20 font-black'
+                : 'text-gray-600 hover:text-[#043E49] border-transparent hover:bg-gray-100'
             }`}
           >
             About Us
@@ -82,8 +83,8 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onGoalsClick}
             className={`text-xs sm:text-sm font-bold transition-all cursor-pointer px-3.5 py-1.5 rounded-full border ${
               currentPage === 'goals'
-                ? 'bg-green-50 text-[#15803D] border-green-200 font-black'
-                : 'text-gray-600 hover:text-[#15803D] border-transparent hover:bg-gray-100'
+                ? 'bg-[#043E49]/10 text-[#043E49] border-[#043E49]/20 font-black'
+                : 'text-gray-600 hover:text-[#043E49] border-transparent hover:bg-gray-100'
             }`}
           >
             Future Goals
@@ -93,8 +94,8 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onGalleryClick}
             className={`inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold transition-all cursor-pointer px-3.5 py-1.5 rounded-full border ${
               currentPage === 'gallery'
-                ? 'bg-green-50 text-[#15803D] border-green-200 font-black'
-                : 'text-gray-600 hover:text-[#15803D] border-transparent hover:bg-gray-100'
+                ? 'bg-[#043E49]/10 text-[#043E49] border-[#043E49]/20 font-black'
+                : 'text-gray-600 hover:text-[#043E49] border-transparent hover:bg-gray-100'
             }`}
           >
             <Images className="w-4 h-4" />
@@ -117,7 +118,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="header-donate-btn"
             onClick={onDonateClick}
-            className="flex items-center gap-1.5 px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-white bg-[#15803D] hover:bg-green-800 active:bg-green-900 transition-all rounded-full shadow-2xs cursor-pointer whitespace-nowrap"
+            className="flex items-center gap-1.5 px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-white bg-[#043E49] hover:bg-[#032f38] active:bg-[#02232a] transition-all rounded-full shadow-2xs cursor-pointer whitespace-nowrap"
           >
             <Heart className="w-4 h-4 fill-white text-white" />
             <span>Donate</span>
@@ -126,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Mobile Hamburger Menu Toggle Button (Visible only on < md) */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 rounded-lg text-gray-700 hover:text-[#15803D] hover:bg-gray-100 transition-colors border border-gray-200 cursor-pointer"
+            className="md:hidden p-1.5 rounded-lg text-gray-700 hover:text-[#043E49] hover:bg-gray-100 transition-colors border border-gray-200 cursor-pointer"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileMenuOpen}
           >
@@ -147,43 +148,43 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => handleNavAction(onHomeClick)}
               className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold text-left transition-colors cursor-pointer ${
                 currentPage === 'home'
-                  ? 'bg-green-50 text-[#15803D]'
+                  ? 'bg-[#043E49]/10 text-[#043E49]'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               <span>Home</span>
-              {currentPage === 'home' && <span className="w-2 h-2 rounded-full bg-[#15803D]"></span>}
+              {currentPage === 'home' && <span className="w-2 h-2 rounded-full bg-[#043E49]"></span>}
             </button>
 
             <button
               onClick={() => handleNavAction(onAboutClick)}
               className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold text-left transition-colors cursor-pointer ${
                 currentPage === 'about'
-                  ? 'bg-green-50 text-[#15803D]'
+                  ? 'bg-[#043E49]/10 text-[#043E49]'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               <span>About Us</span>
-              {currentPage === 'about' && <span className="w-2 h-2 rounded-full bg-[#15803D]"></span>}
+              {currentPage === 'about' && <span className="w-2 h-2 rounded-full bg-[#043E49]"></span>}
             </button>
 
             <button
               onClick={() => handleNavAction(onGoalsClick)}
               className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold text-left transition-colors cursor-pointer ${
                 currentPage === 'goals'
-                  ? 'bg-green-50 text-[#15803D]'
+                  ? 'bg-[#043E49]/10 text-[#043E49]'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
               <span>Future Goals</span>
-              {currentPage === 'goals' && <span className="w-2 h-2 rounded-full bg-[#15803D]"></span>}
+              {currentPage === 'goals' && <span className="w-2 h-2 rounded-full bg-[#043E49]"></span>}
             </button>
 
             <button
               onClick={() => handleNavAction(onGalleryClick)}
               className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold text-left transition-colors cursor-pointer ${
                 currentPage === 'gallery'
-                  ? 'bg-green-50 text-[#15803D]'
+                  ? 'bg-[#043E49]/10 text-[#043E49]'
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -191,7 +192,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <Images className="w-4 h-4" />
                 <span>Photo Showcase Gallery</span>
               </div>
-              {currentPage === 'gallery' && <span className="w-2 h-2 rounded-full bg-[#15803D]"></span>}
+              {currentPage === 'gallery' && <span className="w-2 h-2 rounded-full bg-[#043E49]"></span>}
             </button>
 
             {onAdminClick && (
@@ -212,13 +213,13 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <div>
                 <span className="text-[10px] text-gray-400 font-semibold block">24/7 Rescue Line</span>
-                <a href="tel:18007233729" className="font-bold text-[#1A1A1A] hover:text-[#15803D]">
+                <a href="tel:18007233729" className="font-bold text-[#1A1A1A] hover:text-[#043E49]">
                   1-800-723-3729
                 </a>
               </div>
             </div>
 
-            <span className="text-[10px] font-bold bg-green-50 text-[#15803D] px-2 py-0.5 rounded-full border border-green-200">
+            <span className="text-[10px] font-bold bg-[#043E49]/10 text-[#043E49] px-2 py-0.5 rounded-full border border-[#043E49]/20">
               501(c)(3)
             </span>
           </div>

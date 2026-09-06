@@ -142,7 +142,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
                 <button
                   id="future-goals-back-btn"
                   onClick={onBackToHome}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#15803D] transition-colors cursor-pointer bg-gray-50 hover:bg-green-50 border border-gray-200 px-3 py-1.5 rounded-full shadow-2xs"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#043E49] transition-colors cursor-pointer bg-gray-50 hover:bg-[#043E49]/10 border border-gray-200 px-3 py-1.5 rounded-full shadow-2xs"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Back to Home</span>
@@ -168,7 +168,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
               {onDonateClick && (
                 <button
                   onClick={onDonateClick}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold bg-[#15803D] hover:bg-green-800 text-white px-3.5 py-1.5 rounded-full transition-colors cursor-pointer shadow-2xs"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white px-3.5 py-1.5 rounded-full transition-colors cursor-pointer shadow-2xs"
                 >
                   <Heart className="w-3.5 h-3.5 fill-white" />
                   <span>Support Goals</span>
@@ -183,7 +183,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-6 space-y-6 sm:space-y-8">
         {/* Intro Header */}
         <div className="max-w-3xl space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#15803D] bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200">
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#043E49] bg-[#043E49]/10 px-2.5 py-0.5 rounded-full border border-[#043E49]/20">
             <Sparkles className="w-3 h-3" />
             <span>Strategic Horizon 2026–2030</span>
           </div>
@@ -220,7 +220,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
               <div className="flex-1 p-4 sm:p-6 lg:p-7 flex flex-col justify-between space-y-3.5">
                 <div className="space-y-2.5">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-[#15803D] bg-green-50 border border-green-200 px-2.5 py-0.5 rounded-full">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-2.5 py-0.5 rounded-full">
                       {goal.tag}
                     </span>
                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
@@ -241,7 +241,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
                   <div className="pt-1 space-y-1.5">
                     {goal.highlights.map((highlight, hIndex) => (
                       <div key={hIndex} className="flex items-start gap-2 text-xs text-gray-700">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
                         <span className="leading-snug">{highlight}</span>
                       </div>
                     ))}
@@ -256,7 +256,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
                     </span>
                     <button
                       onClick={onDonateClick}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-[#15803D] hover:text-green-800 hover:underline transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 text-xs font-bold text-[#043E49] hover:text-[#032f38] hover:underline transition-colors cursor-pointer"
                     >
                       <span>Sponsor this initiative</span>
                       <ArrowUpRight className="w-3.5 h-3.5" />
@@ -280,7 +280,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
             {onDonateClick && (
               <button
                 onClick={onDonateClick}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#15803D] hover:bg-green-800 text-white shadow-2xs transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white shadow-2xs transition-colors cursor-pointer"
               >
                 <Heart className="w-3.5 h-3.5 fill-white" />
                 <span>Make a Future Goals Contribution</span>

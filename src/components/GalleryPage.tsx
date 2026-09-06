@@ -29,7 +29,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
             <div className="flex items-center gap-2.5">
               <button
                 onClick={onBackToHome}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#15803D] transition-colors cursor-pointer bg-gray-50 hover:bg-green-50 border border-gray-200 px-3 py-1.5 rounded-full"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#043E49] transition-colors cursor-pointer bg-gray-50 hover:bg-[#043E49]/10 border border-gray-200 px-3 py-1.5 rounded-full"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Back to Home</span>
@@ -87,7 +87,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
                   <div className="p-3 sm:p-3.5 flex flex-col justify-between flex-1">
                     <div>
                       {item.title && (
-                        <h3 className="text-xs sm:text-sm font-bold text-[#1A1A1A] line-clamp-1 group-hover:text-[#15803D] transition-colors">
+                        <h3 className="text-xs sm:text-sm font-bold text-[#1A1A1A] line-clamp-1 group-hover:text-[#043E49] transition-colors">
                           {item.title}
                         </h3>
                       )}
@@ -157,7 +157,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
 
               <button
                 onClick={() => setActiveLightboxItem(null)}
-                className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#15803D] hover:bg-green-800 text-white transition-colors cursor-pointer self-start sm:self-auto"
+                className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white transition-colors cursor-pointer self-start sm:self-auto"
               >
                 Close
               </button>

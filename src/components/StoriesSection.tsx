@@ -91,8 +91,8 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 sm:mb-8">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100/80 text-[#15803D] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-1.5">
-              <Sparkles className="w-3 h-3 text-[#15803D]" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#043E49]/10 text-[#043E49] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-1.5">
+              <Sparkles className="w-3 h-3 text-[#043E49]" />
               Rescues & Second Chances
             </div>
             <h2 className="text-xl sm:text-3xl lg:text-3xl font-black text-[#1A1A1A] tracking-tight">
@@ -107,7 +107,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
           <div className="flex items-center gap-2 self-start sm:self-auto">
             {/* Page Counter */}
             <div className="text-[11px] font-mono font-bold text-gray-500 bg-white border border-gray-200 px-2.5 py-1 rounded-full shadow-2xs">
-              <span className="text-[#15803D] font-black">0{currentPage + 1}</span>
+              <span className="text-[#043E49] font-black">0{currentPage + 1}</span>
               <span className="text-gray-300 mx-1">/</span>
               <span>0{totalPages}</span>
             </div>
@@ -116,7 +116,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
             <button
               onClick={() => setIsPlaying(!isPlaying)}
               aria-label={isPlaying ? 'Pause stories carousel' : 'Play stories carousel'}
-              className="p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-[#15803D] hover:border-gray-300 shadow-2xs transition-all cursor-pointer touch-manipulation"
+              className="p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-[#043E49] hover:border-gray-300 shadow-2xs transition-all cursor-pointer touch-manipulation"
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
             </button>
@@ -126,14 +126,14 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
               <button
                 onClick={handlePrev}
                 aria-label="Previous stories"
-                className="p-1.5 sm:p-2 rounded-full text-gray-600 hover:text-white hover:bg-[#15803D] transition-colors cursor-pointer touch-manipulation"
+                className="p-1.5 sm:p-2 rounded-full text-gray-600 hover:text-white hover:bg-[#043E49] transition-colors cursor-pointer touch-manipulation"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={handleNext}
                 aria-label="Next stories"
-                className="p-1.5 sm:p-2 rounded-full text-gray-600 hover:text-white hover:bg-[#15803D] transition-colors cursor-pointer touch-manipulation"
+                className="p-1.5 sm:p-2 rounded-full text-gray-600 hover:text-white hover:bg-[#043E49] transition-colors cursor-pointer touch-manipulation"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -170,7 +170,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
                     {/* Status Badge Over Image */}
                     {story.status && (
                       <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-black/60 text-white backdrop-blur-md border border-white/20 shadow-sm">
-                        <CheckCircle2 className="w-3 h-3 text-green-400" />
+                        <CheckCircle2 className="w-3 h-3 text-[#4fc3d0]" />
                         <span>{story.status}</span>
                       </div>
                     )}
@@ -185,10 +185,10 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
                   {/* Card Content: Title & Description */}
                   <div className="p-3.5 sm:p-5 lg:p-6 flex flex-col flex-1 justify-between gap-3 sm:gap-4">
                     <div className="space-y-1.5 sm:space-y-2">
-                      <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#15803D]">
+                      <div className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#043E49]">
                         {story.category}
                       </div>
-                      <h3 className="text-base sm:text-xl font-black text-[#1A1A1A] tracking-tight leading-snug group-hover:text-[#15803D] transition-colors">
+                      <h3 className="text-base sm:text-xl font-black text-[#1A1A1A] tracking-tight leading-snug group-hover:text-[#043E49] transition-colors">
                         {story.title}
                       </h3>
                       <p className="text-xs sm:text-[13px] text-gray-600 leading-relaxed line-clamp-3">
@@ -209,7 +209,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
                             setSelectedStory(story);
                           }
                         }}
-                        className="inline-flex items-center gap-1 font-bold text-[#15803D] hover:text-green-800 transition-colors cursor-pointer group/btn text-xs sm:text-[13px] touch-manipulation"
+                        className="inline-flex items-center gap-1 font-bold text-[#043E49] hover:text-[#032f38] transition-colors cursor-pointer group/btn text-xs sm:text-[13px] touch-manipulation"
                       >
                         <span>Support Similar Rescues</span>
                         <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
@@ -233,7 +233,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
                 aria-label={`Go to stories slide ${index + 1}`}
                 className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer touch-manipulation ${
                   isActive 
-                    ? 'w-6 sm:w-8 bg-[#15803D]' 
+                    ? 'w-6 sm:w-8 bg-[#043E49]' 
                     : 'w-2 bg-gray-300 hover:bg-gray-400'
                 }`}
               />
@@ -247,7 +247,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
             <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white rounded-[24px] sm:rounded-[32px] border-2 sm:border-4 border-white shadow-2xl p-5 sm:p-8 text-[#1A1A1A] relative animate-fade-in my-auto">
               <div className="flex items-center justify-between border-b border-gray-100 pb-3 sm:pb-4 mb-3 sm:mb-4">
                 <div>
-                  <span className="text-[11px] sm:text-xs text-[#15803D] font-bold uppercase tracking-widest">{selectedStory.category}</span>
+                  <span className="text-[11px] sm:text-xs text-[#043E49] font-bold uppercase tracking-widest">{selectedStory.category}</span>
                   <h3 className="text-xl sm:text-2xl font-black text-[#1A1A1A] mt-0.5">{selectedStory.name}'s Story</h3>
                 </div>
                 <button
@@ -275,7 +275,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setSelectedStory(null)}
-                  className="py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl text-xs font-bold bg-[#15803D] hover:bg-green-800 text-white transition-colors cursor-pointer shadow-md touch-manipulation"
+                  className="py-2.5 sm:py-3 px-5 sm:px-6 rounded-xl text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white transition-colors cursor-pointer shadow-md touch-manipulation"
                 >
                   Close
                 </button>

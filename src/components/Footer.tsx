@@ -9,6 +9,7 @@ import {
   Youtube,
   Music2
 } from 'lucide-react';
+import { RiseAndRescueLogo } from './RiseAndRescueLogo';
 
 interface FooterProps {
   onNavigateHome: () => void;
@@ -36,17 +37,17 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Brand Info */}
           <div className="space-y-2.5">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-md bg-[#15803D] flex items-center justify-center text-white">
-                <Heart className="w-3 h-3 fill-white" />
+              <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+                <RiseAndRescueLogo className="w-full h-full" inverted={true} />
               </div>
               <span className="font-bold text-sm text-white tracking-tight">
-                Rise & Rescue
+                Rise & Rescue Animal Welfare
               </span>
             </div>
             <p className="text-[11px] text-gray-400 leading-relaxed">
-              Dedicated to wildlife rehabilitation, compassionate veterinary rescue, and lifelong sanctuary protection.
+              Dedicated to stray animal care, compassionate veterinary rescue, and lifelong rehabilitation.
             </p>
-            <span className="inline-block text-[10px] font-semibold text-green-400 bg-green-950/60 border border-green-800/50 px-2 py-0.5 rounded-full">
+            <span className="inline-block text-[10px] font-semibold text-[#4fc3d0] bg-[#043E49]/60 border border-[#043E49] px-2 py-0.5 rounded-full">
               501(c)(3) Non-Profit
             </span>
           </div>
@@ -58,7 +59,7 @@ export const Footer: React.FC<FooterProps> = ({
             </h4>
             <div className="space-y-1.5 text-[11px]">
               <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                <Phone className="w-3.5 h-3.5 text-[#4fc3d0] flex-shrink-0" />
                 <div>
                   <a href="tel:18007233729" className="text-gray-200 hover:text-white font-medium transition-colors">
                     1-800-723-3729
@@ -68,7 +69,7 @@ export const Footer: React.FC<FooterProps> = ({
               </div>
 
               <div className="flex items-center gap-2 pt-0.5">
-                <Mail className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                <Mail className="w-3.5 h-3.5 text-[#4fc3d0] flex-shrink-0" />
                 <a href="mailto:contact@riseandrescue.org" className="text-gray-200 hover:text-white font-medium transition-colors">
                   contact@riseandrescue.org
                 </a>
@@ -82,7 +83,7 @@ export const Footer: React.FC<FooterProps> = ({
               Sanctuary Address
             </h4>
             <div className="flex items-start gap-2 text-[11px] text-gray-300">
-              <MapPin className="w-3.5 h-3.5 text-green-500 flex-shrink-0 mt-0.5" />
+              <MapPin className="w-3.5 h-3.5 text-[#4fc3d0] flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-medium text-gray-200">4280 Meadowbrook Sanctuary Way</p>
                 <p className="text-gray-400 text-[10px] mt-0.5">Boulder Foothills, CO 80302</p>
@@ -90,7 +91,7 @@ export const Footer: React.FC<FooterProps> = ({
                   href="https://maps.google.com/?q=Boulder+CO" 
                   target="_blank" 
                   rel="noreferrer" 
-                  className="inline-block text-[10px] text-green-400 hover:underline mt-0.5"
+                  className="inline-block text-[10px] text-[#4fc3d0] hover:underline mt-0.5"
                 >
                   View on Google Maps
                 </a>
@@ -173,7 +174,7 @@ export const Footer: React.FC<FooterProps> = ({
                 Gallery
               </button>
               <span>•</span>
-              <button onClick={onDonateClick} className="text-green-400 hover:text-green-300 font-semibold cursor-pointer">
+              <button onClick={onDonateClick} className="text-[#4fc3d0] hover:text-[#76d6e1] font-semibold cursor-pointer">
                 Donate
               </button>
             </div>

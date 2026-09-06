@@ -148,7 +148,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-[#1A1A1A] flex flex-col selection:bg-[#15803D] selection:text-white relative">
+    <div className="min-h-screen bg-[#F8F9FA] text-[#1A1A1A] flex flex-col selection:bg-[#043E49] selection:text-white relative">
       {/* Top Sanctuary Navigation Bar */}
       <Header 
         currentPage={currentPage}
@@ -205,7 +205,7 @@ export default function App() {
                 onClick={() => setActiveTab('carousel')}
                 className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'carousel'
-                    ? 'bg-[#15803D] text-white shadow-xs'
+                    ? 'bg-[#043E49] text-white shadow-xs'
                     : 'text-gray-600 hover:text-[#1A1A1A]'
                 }`}
               >
@@ -216,7 +216,7 @@ export default function App() {
                 onClick={() => setActiveTab('donate')}
                 className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   activeTab === 'donate'
-                    ? 'bg-[#15803D] text-white shadow-xs'
+                    ? 'bg-[#043E49] text-white shadow-xs'
                     : 'text-gray-600 hover:text-[#1A1A1A]'
                 }`}
               >
@@ -289,7 +289,7 @@ export default function App() {
         type="button"
         onClick={handleHeroScroll}
         aria-label="Scroll to top or hero section"
-        className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-3.5 bg-[#15803D] hover:bg-green-800 text-white rounded-full font-black text-xs sm:text-sm shadow-[0_10px_25px_rgba(21,128,61,0.35)] hover:shadow-[0_14px_30px_rgba(21,128,61,0.45)] border-2 border-white/90 transition-all duration-300 cursor-pointer group active:scale-95 ${
+        className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-3.5 bg-[#043E49] hover:bg-[#032f38] text-white rounded-full font-black text-xs sm:text-sm shadow-[0_10px_25px_rgba(4,62,73,0.35)] hover:shadow-[0_14px_30px_rgba(4,62,73,0.45)] border-2 border-white/90 transition-all duration-300 cursor-pointer group active:scale-95 ${
           showScrollTop
             ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
             : 'opacity-0 translate-y-4 scale-90 pointer-events-none'

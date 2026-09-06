@@ -66,7 +66,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
             <div className="flex items-center gap-3">
               <button
                 onClick={onBackToHome}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#15803D] transition-colors cursor-pointer bg-gray-50 hover:bg-green-50 border border-gray-200 px-3 py-1.5 rounded-full"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#043E49] transition-colors cursor-pointer bg-gray-50 hover:bg-[#043E49]/10 border border-gray-200 px-3 py-1.5 rounded-full"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Back to Home</span>
@@ -85,13 +85,13 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   <span>Future Goals</span>
                 </button>
               )}
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-green-50 text-[#15803D] border border-green-200 px-2.5 py-1 rounded-full">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#15803D]" />
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#043E49]/10 text-[#043E49] border border-[#043E49]/20 px-2.5 py-1 rounded-full">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#043E49]" />
                 501(c)(3) Non-Profit
               </span>
               <button
                 onClick={onDonateClick}
-                className="inline-flex items-center gap-1.5 text-xs font-bold bg-[#15803D] hover:bg-green-800 text-white px-3.5 py-1.5 rounded-full transition-colors cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-1.5 text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white px-3.5 py-1.5 rounded-full transition-colors cursor-pointer shadow-xs"
               >
                 <Heart className="w-3.5 h-3.5 fill-white" />
                 <span>Support Our Cause</span>
@@ -106,8 +106,8 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center p-4 sm:p-6 lg:p-8">
             <div className="lg:col-span-7 space-y-4">
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-[#15803D] bg-green-50 border border-green-200 px-2.5 py-0.5 rounded-full">
-                <Sparkles className="w-3 h-3 text-[#15803D]" />
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-2.5 py-0.5 rounded-full">
+                <Sparkles className="w-3 h-3 text-[#043E49]" />
                 Our Story & Commitment
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-[#1A1A1A] tracking-tight leading-tight">
@@ -127,7 +127,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   <span>Charity Navigator 4-Star (98.6%)</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-2.5 py-1.5 rounded-lg">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#15803D]" />
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#043E49]" />
                   <span>GuideStar Platinum Transparency</span>
                 </div>
                 <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-2.5 py-1.5 rounded-lg">
@@ -147,7 +147,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                 <div className="absolute bottom-3 left-3 right-3 text-white">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#15803D] px-2 py-0.5 rounded-full inline-block mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#043E49] px-2 py-0.5 rounded-full inline-block mb-1">
                     Sanctuary Hospital
                   </span>
                   <p className="text-[11px] font-semibold text-gray-200">
@@ -162,7 +162,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         {/* Our Vision & Our Mission */}
         <section className="space-y-4 sm:space-y-5">
           <div className="text-center max-w-2xl mx-auto space-y-1.5">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#15803D] bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#043E49] bg-[#043E49]/10 px-2.5 py-0.5 rounded-full border border-[#043E49]/20">
               <Sparkles className="w-3 h-3" />
               <span>Guiding Horizon & Daily Commitment</span>
             </div>
@@ -178,11 +178,11 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
             {/* Our Mission Card */}
             <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-2xs flex flex-col justify-between hover:shadow-sm transition-shadow relative overflow-hidden">
               <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-green-50 text-[#15803D] border border-green-200 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-[#043E49]/10 text-[#043E49] border border-[#043E49]/20 flex items-center justify-center font-bold">
                   <Target className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#15803D]">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#043E49]">
                     Action Today
                   </span>
                   <h4 className="text-xl font-black text-[#1A1A1A] tracking-tight mt-0.5">
@@ -195,15 +195,15 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
                 <div className="pt-1 space-y-2">
                   <div className="flex items-start gap-2.5 text-xs text-gray-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
                     <span>Rapid 24/7 mobile field dispatch for acute animal emergencies and wildfire evacuation.</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-xs text-gray-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
                     <span>State-of-the-art diagnostic imaging, orthopedic surgery, and specialized thermal nurseries.</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-xs text-gray-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D] shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
                     <span>Humane community education and transparent, donor-accountable rescue operations.</span>
                   </div>
                 </div>
@@ -211,18 +211,18 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
               <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-500">
                 <span>Operational Mandate</span>
-                <span className="text-[#15803D] font-bold">Rescuing 24/7/365</span>
+                <span className="text-[#043E49] font-bold">Rescuing 24/7/365</span>
               </div>
             </div>
 
             {/* Our Vision Card */}
             <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-2xs flex flex-col justify-between hover:shadow-sm transition-shadow relative overflow-hidden">
               <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-xl bg-[#043E49]/10 text-[#043E49] border border-[#043E49]/20 flex items-center justify-center font-bold">
                   <Eye className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#15803D]">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[#043E49]">
                     The Horizon Tomorrow
                   </span>
                   <h4 className="text-xl font-black text-[#1A1A1A] tracking-tight mt-0.5">
@@ -235,15 +235,15 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
                 <div className="pt-1 space-y-2">
                   <div className="flex items-start gap-2.5 text-xs text-gray-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
                     <span>Zero preventable animal casualties caused by habitat disruption or human-wildlife conflict.</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-xs text-gray-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
                     <span>Expanding protected foothill sanctuary acreage to provide endless safe havens for permanent residents.</span>
                   </div>
                   <div className="flex items-start gap-2.5 text-xs text-gray-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
                     <span>Empowering the next generation with empathy, conservation science, and respect for all living beings.</span>
                   </div>
                 </div>
@@ -251,7 +251,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
 
               <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-500">
                 <span>Long-Term Future</span>
-                <span className="text-emerald-700 font-bold">Harmonious Coexistence</span>
+                <span className="text-[#043E49] font-bold">Harmonious Coexistence</span>
               </div>
             </div>
           </div>
@@ -260,7 +260,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         {/* Leadership & Veterinary Team */}
         <section className="space-y-4 sm:space-y-5">
           <div className="text-center max-w-2xl mx-auto space-y-1.5">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#15803D] bg-green-50 px-2.5 py-0.5 rounded-full border border-green-200">
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#043E49] bg-[#043E49]/10 px-2.5 py-0.5 rounded-full border border-[#043E49]/20">
               <Users className="w-3 h-3" />
               <span>Compassionate Caretakers</span>
             </div>
@@ -293,7 +293,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   <h4 className="text-xs sm:text-sm font-bold text-[#1A1A1A]">
                     {member.name}
                   </h4>
-                  <p className="text-[11px] font-semibold text-[#15803D]">
+                  <p className="text-[11px] font-semibold text-[#043E49]">
                     {member.role}
                   </p>
                   <p className="text-[11px] text-gray-500 leading-relaxed flex-grow">
@@ -306,12 +306,12 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
         </section>
 
         {/* Call to Action Banner */}
-        <section className="bg-gradient-to-r from-[#15803D] to-green-900 text-white rounded-2xl p-6 sm:p-8 text-center shadow-md space-y-4">
+        <section className="bg-gradient-to-r from-[#043E49] to-[#02232a] text-white rounded-2xl p-6 sm:p-8 text-center shadow-md space-y-4">
           <div className="max-w-2xl mx-auto space-y-2">
             <h3 className="text-xl sm:text-2xl font-black tracking-tight">
               Join Us in Protecting Vulnerable Lives
             </h3>
-            <p className="text-xs sm:text-sm text-green-100 leading-relaxed">
+            <p className="text-xs sm:text-sm text-teal-100 leading-relaxed">
               Whether through a monthly sponsorship, emergency surgery donation, or visiting our photo showcase, you give injured animals a safe place to heal.
             </p>
           </div>
@@ -319,15 +319,15 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
           <div className="flex flex-wrap items-center justify-center gap-3 pt-1">
             <button
               onClick={onDonateClick}
-              className="px-4.5 py-2 rounded-full text-xs sm:text-[13px] font-bold bg-white text-[#15803D] hover:bg-green-50 shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-4.5 py-2 rounded-full text-xs sm:text-[13px] font-bold bg-white text-[#043E49] hover:bg-[#043E49]/10 shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
             >
-              <Heart className="w-3.5 h-3.5 fill-[#15803D]" />
+              <Heart className="w-3.5 h-3.5 fill-[#043E49]" />
               <span>Make a Tax-Deductible Gift</span>
             </button>
 
             <button
               onClick={onNavigateGallery}
-              className="px-4.5 py-2 rounded-full text-xs sm:text-[13px] font-bold bg-green-800/80 hover:bg-green-800 text-white border border-green-600 transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-4.5 py-2 rounded-full text-xs sm:text-[13px] font-bold bg-[#043E49]/80 hover:bg-[#043E49] text-white border border-[#043E49]/60 transition-all cursor-pointer flex items-center gap-1.5"
             >
               <span>View Photo Showcase Gallery</span>
               <ArrowUpRight className="w-3.5 h-3.5" />

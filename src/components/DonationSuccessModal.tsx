@@ -40,10 +40,10 @@ export const DonationSuccessModal: React.FC<DonationSuccessModalProps> = ({
 
         {/* Top Celebration Header */}
         <div className="bg-[#F8F9FA] p-6 sm:p-8 text-center border-b border-gray-100">
-          <div className="w-16 h-16 bg-green-100 border border-green-200 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
-            <Heart className="w-8 h-8 fill-[#15803D] text-[#15803D]" />
+          <div className="w-16 h-16 bg-[#043E49]/10 border border-[#043E49]/20 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm">
+            <Heart className="w-8 h-8 fill-[#043E49] text-[#043E49]" />
           </div>
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-[#15803D] uppercase tracking-wider mb-2">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#043E49]/10 text-[#043E49] uppercase tracking-wider mb-2">
             <CheckCircle2 className="w-3.5 h-3.5" />
             Gift Confirmed & Tax Deductible
           </span>
@@ -52,7 +52,7 @@ export const DonationSuccessModal: React.FC<DonationSuccessModalProps> = ({
           </h2>
           <p className="text-sm text-gray-600 mt-2 max-w-md mx-auto leading-relaxed">
             Your generous gift of{' '}
-            <strong className="text-[#15803D] font-black">${submission.amount.toFixed(2)}</strong>{' '}
+            <strong className="text-[#043E49] font-black">${submission.amount.toFixed(2)}</strong>{' '}
             {submission.frequency === 'monthly' ? 'per month' : ''} directly provides veterinary medicine, surgery, and sanctuary care for rescued animals.
           </p>
         </div>
@@ -62,7 +62,7 @@ export const DonationSuccessModal: React.FC<DonationSuccessModalProps> = ({
           <div className="bg-gray-50 border border-gray-200/80 rounded-2xl p-4 text-xs space-y-2.5">
             <div className="flex justify-between items-center border-b border-gray-200/60 pb-2">
               <span className="text-gray-500 font-medium">Official Tax Receipt #:</span>
-              <span className="font-mono font-bold text-[#15803D]">{submission.receiptNumber}</span>
+              <span className="font-mono font-bold text-[#043E49]">{submission.receiptNumber}</span>
             </div>
             <div className="flex justify-between items-center border-b border-gray-200/60 pb-2">
               <span className="text-gray-500 font-medium">Designated Cause:</span>
@@ -93,19 +93,19 @@ export const DonationSuccessModal: React.FC<DonationSuccessModalProps> = ({
               onClick={handleCopyReceipt}
               className="w-full sm:flex-1 py-3 px-4 rounded-2xl text-xs font-bold bg-gray-100 hover:bg-gray-200 text-[#1A1A1A] border border-gray-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              {copied ? <Check className="w-4 h-4 text-[#15803D]" /> : <Copy className="w-4 h-4 text-gray-500" />}
+              {copied ? <Check className="w-4 h-4 text-[#043E49]" /> : <Copy className="w-4 h-4 text-gray-500" />}
               <span>{copied ? 'Copied Receipt' : 'Copy Receipt Summary'}</span>
             </button>
             <button
               onClick={onClose}
-              className="w-full sm:flex-1 py-3 px-4 rounded-2xl text-xs font-black bg-[#15803D] hover:bg-green-800 text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+              className="w-full sm:flex-1 py-3 px-4 rounded-2xl text-xs font-black bg-[#043E49] hover:bg-[#032f38] text-white transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
             >
               <span>Return to Sanctuary</span>
             </button>
           </div>
 
           <div className="flex items-center justify-center gap-2 text-[11px] text-gray-500 text-center font-medium">
-            <ShieldCheck className="w-4 h-4 text-[#15803D]" />
+            <ShieldCheck className="w-4 h-4 text-[#043E49]" />
             <span>A certified 501(c)(3) tax receipt confirmation has been issued.</span>
           </div>
         </div>

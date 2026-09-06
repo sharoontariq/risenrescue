@@ -54,8 +54,8 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 sm:mb-8">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-green-100/80 text-[#15803D] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-1.5">
-              <Sparkles className="w-3 h-3 text-[#15803D]" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#043E49]/10 text-[#043E49] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-1.5">
+              <Sparkles className="w-3 h-3 text-[#043E49]" />
               Our Core Pillars
             </div>
             <h2 className="text-xl sm:text-3xl lg:text-3xl font-black text-[#1A1A1A] tracking-tight">
@@ -69,7 +69,7 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
           {/* Navigation Controls in Header */}
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <div className="text-[11px] font-mono font-bold text-gray-500 bg-white border border-gray-200 px-2.5 py-1 rounded-full shadow-2xs">
-              <span className="text-[#15803D] font-black">0{currentIndex + 1}</span>
+              <span className="text-[#043E49] font-black">0{currentIndex + 1}</span>
               <span className="text-gray-300 mx-1">/</span>
               <span>0{WHAT_WE_DO_ITEMS.length}</span>
             </div>
@@ -77,7 +77,7 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
             <button
               onClick={() => setIsPlaying((prev) => !prev)}
               aria-label={isPlaying ? 'Pause slideshow' : 'Start slideshow'}
-              className="p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-[#15803D] hover:border-[#15803D] shadow-2xs transition-all cursor-pointer touch-manipulation"
+              className="p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-[#043E49] hover:border-[#043E49] shadow-2xs transition-all cursor-pointer touch-manipulation"
             >
               {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
             </button>
@@ -86,14 +86,14 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
               <button
                 onClick={handlePrev}
                 aria-label="Previous pillar"
-                className="p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-700 hover:text-[#15803D] hover:border-[#15803D] shadow-2xs transition-all cursor-pointer touch-manipulation"
+                className="p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-700 hover:text-[#043E49] hover:border-[#043E49] shadow-2xs transition-all cursor-pointer touch-manipulation"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={handleNext}
                 aria-label="Next pillar"
-                className="p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-700 hover:text-[#15803D] hover:border-[#15803D] shadow-2xs transition-all cursor-pointer touch-manipulation"
+                className="p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-700 hover:text-[#043E49] hover:border-[#043E49] shadow-2xs transition-all cursor-pointer touch-manipulation"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -141,7 +141,7 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
                   className="space-y-3 sm:space-y-3.5"
                 >
                   {/* Pillar Category Badge */}
-                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-green-50 text-[#15803D] border border-green-200/60">
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#043E49]/10 text-[#043E49] border border-[#043E49]/20">
                     {currentItem.tag}
                   </div>
 
@@ -158,7 +158,7 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
                   {/* Highlight Stat Metric Card */}
                   {currentItem.metricNumber && (
                     <div className="bg-[#F8F9FA] rounded-xl p-3 sm:p-4 border border-gray-200/80 flex items-center gap-3.5">
-                      <div className="text-xl sm:text-2xl font-black text-[#15803D] tracking-tight">
+                      <div className="text-xl sm:text-2xl font-black text-[#043E49] tracking-tight">
                         {currentItem.metricNumber}
                       </div>
                       <div className="text-xs sm:text-[13px] font-semibold text-gray-600 border-l border-gray-200 pl-3.5">
@@ -183,7 +183,7 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
                       <div
                         className={`h-1.5 rounded-full transition-all duration-300 ${
                           isCurrent
-                            ? 'w-8 bg-[#15803D] shadow-xs'
+                            ? 'w-8 bg-[#043E49] shadow-xs'
                             : 'w-2.5 bg-gray-200 hover:bg-gray-300'
                         }`}
                       />
