@@ -103,16 +103,16 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
 
         {/* Carousel Card Container: Left Picture, Right Content */}
         <div 
-          className="bg-white rounded-[20px] sm:rounded-[32px] border border-gray-100 shadow-[0_12px_35px_rgba(0,0,0,0.06)] p-4 sm:p-6 lg:p-8 transition-all overflow-hidden select-none"
+          className="bg-white rounded-[20px] sm:rounded-[32px] border border-gray-100 shadow-[0_12px_35px_rgba(0,0,0,0.06)] p-3.5 sm:p-6 lg:p-8 transition-all overflow-hidden select-none"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 lg:gap-8 items-center">
             {/* Left Side: Picture */}
             <div className="lg:col-span-6 xl:col-span-6 w-full">
-              <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] rounded-[18px] sm:rounded-[24px] overflow-hidden bg-gray-100 border border-white sm:border-2 shadow-md">
+              <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] rounded-[16px] sm:rounded-[24px] overflow-hidden bg-gray-100 border border-white sm:border-2 shadow-md">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={currentItem.id}
@@ -130,7 +130,7 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
             </div>
 
             {/* Right Side: Heading & Description */}
-            <div className="lg:col-span-6 xl:col-span-6 flex flex-col justify-center space-y-4 sm:space-y-4.5">
+            <div className="lg:col-span-6 xl:col-span-6 flex flex-col justify-center space-y-3.5 sm:space-y-4.5">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={currentItem.id}
@@ -138,15 +138,15 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="space-y-3 sm:space-y-3.5"
+                  className="space-y-2.5 sm:space-y-3.5"
                 >
                   {/* Pillar Category Badge */}
-                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-[#043E49]/10 text-[#043E49] border border-[#043E49]/20">
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] sm:text-[11px] font-black uppercase tracking-wider bg-[#043E49]/10 text-[#043E49] border border-[#043E49]/20">
                     {currentItem.tag}
                   </div>
 
                   {/* Heading */}
-                  <h3 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#1A1A1A] tracking-tight leading-tight">
+                  <h3 className="text-lg sm:text-2xl lg:text-3xl font-black text-[#1A1A1A] tracking-tight leading-tight">
                     {currentItem.title}
                   </h3>
 
@@ -157,11 +157,11 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
 
                   {/* Highlight Stat Metric Card */}
                   {currentItem.metricNumber && (
-                    <div className="bg-[#F8F9FA] rounded-xl p-3 sm:p-4 border border-gray-200/80 flex items-center gap-3.5">
-                      <div className="text-xl sm:text-2xl font-black text-[#043E49] tracking-tight">
+                    <div className="bg-[#F8F9FA] rounded-xl p-3 sm:p-4 border border-gray-200/80 flex flex-col xs:flex-row items-start xs:items-center gap-1.5 xs:gap-3.5">
+                      <div className="text-lg sm:text-2xl font-black text-[#043E49] tracking-tight">
                         {currentItem.metricNumber}
                       </div>
-                      <div className="text-xs sm:text-[13px] font-semibold text-gray-600 border-l border-gray-200 pl-3.5">
+                      <div className="text-xs sm:text-[13px] font-semibold text-gray-600 xs:border-l border-gray-200 xs:pl-3.5">
                         {currentItem.metricLabel}
                       </div>
                     </div>
@@ -178,13 +178,13 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
                       key={item.id}
                       onClick={() => setCurrentIndex(idx)}
                       aria-label={`Jump to ${item.title}`}
-                      className="p-1 -m-1 cursor-pointer flex items-center"
+                      className="p-1 -m-1 cursor-pointer flex items-center touch-manipulation"
                     >
                       <div
                         className={`h-1.5 rounded-full transition-all duration-300 ${
                           isCurrent
-                            ? 'w-8 bg-[#043E49] shadow-xs'
-                            : 'w-2.5 bg-gray-200 hover:bg-gray-300'
+                            ? 'w-6 sm:w-8 bg-[#043E49] shadow-xs'
+                            : 'w-2 sm:w-2.5 bg-gray-200 hover:bg-gray-300'
                         }`}
                       />
                     </button>

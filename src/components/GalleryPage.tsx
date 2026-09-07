@@ -24,12 +24,12 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
     <div className="w-full bg-[#F8F9FA] min-h-screen pb-14">
       {/* Top Bar / Header */}
       <div className="w-full bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3.5 sm:py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <button
                 onClick={onBackToHome}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#043E49] transition-colors cursor-pointer bg-gray-50 hover:bg-[#043E49]/10 border border-gray-200 px-3 py-1.5 rounded-full"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#043E49] transition-colors cursor-pointer bg-gray-50 hover:bg-[#043E49]/10 border border-gray-200 px-3 py-1.5 rounded-full touch-manipulation"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Back to Home</span>
@@ -49,7 +49,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
       </div>
 
       {/* Main Gallery Stage: ONLY SHOWS UPLOADED PICTURES */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-5 sm:mt-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-5 sm:mt-6">
         {galleryItems.length === 0 ? (
           <div className="w-full bg-white rounded-2xl border border-gray-200 p-8 sm:p-12 text-center shadow-2xs">
             <div className="w-12 h-12 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3">

@@ -3,6 +3,9 @@
 @layer base {
   html {
     font-size: 16px;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
   }
 
   @media (min-width: 1024px) {
@@ -16,6 +19,8 @@
     color: #1A1A1A;
     background-color: #F8F9FA;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    width: 100%;
   }
 }
 

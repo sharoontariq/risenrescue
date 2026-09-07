@@ -46,7 +46,7 @@ const INTL_BANK: IntlBankInfo = {
 const LOCAL_BANK: LocalBankInfo = {
   bankName: 'Easy Paisa',
   accountTitle: 'Sharoon Tariq',
-  accountNumber: '0311-7432755'
+  accountNumber: '0311 7432755'
 };
 
 const MOTIVATIONAL_WORDS = [
@@ -78,17 +78,17 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
   return (
     <div 
       id="donation-appeal-box" 
-      className="w-full bg-white rounded-[22px] sm:rounded-[30px] border border-gray-100 shadow-[0_10px_25px_rgba(0,0,0,0.06)] p-4 sm:p-6 transition-all flex flex-col justify-between"
+      className="w-full bg-white rounded-[20px] xs:rounded-[22px] sm:rounded-[30px] border border-gray-100 shadow-[0_10px_25px_rgba(0,0,0,0.06)] p-3.5 sm:p-6 transition-all flex flex-col justify-between"
     >
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <div className="w-8 h-8 sm:w-9 sm:h-9 bg-[#043E49]/10 text-[#043E49] rounded-xl flex items-center justify-center shrink-0">
               <Heart className="w-4 h-4 sm:w-4.5 sm:h-4.5 fill-[#043E49] text-[#043E49]" />
             </div>
-            <div>
-              <h3 className="font-black text-base sm:text-xl text-[#1A1A1A] tracking-tight leading-tight">
+            <div className="min-w-0">
+              <h3 className="font-black text-base sm:text-xl text-[#1A1A1A] tracking-tight leading-tight truncate">
                 Direct Bank Donation
               </h3>
               <div className="text-xs sm:text-[12.5px] text-[#043E49] font-bold tracking-normal mt-0.5 flex items-center gap-1.5 h-5">
@@ -111,7 +111,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
             </div>
           </div>
 
-          <span className="text-[10.5px] font-bold text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs">
+          <span className="text-[10px] sm:text-[10.5px] font-bold text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1 shadow-2xs shrink-0">
             <ShieldCheck className="w-3.5 h-3.5" />
             Official Account
           </span>
@@ -122,47 +122,47 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
           <button
             type="button"
             onClick={() => setDonationType('international')}
-            className={`py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`py-2 px-2.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer touch-manipulation ${
               donationType === 'international'
                 ? 'bg-white text-[#043E49] shadow-xs font-black'
                 : 'text-gray-600 hover:text-[#1A1A1A]'
             }`}
           >
-            <Globe className="w-4 h-4 shrink-0" />
-            <span>International</span>
+            <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">International</span>
           </button>
 
           <button
             type="button"
             onClick={() => setDonationType('local')}
-            className={`py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            className={`py-2 px-2.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer touch-manipulation ${
               donationType === 'local'
                 ? 'bg-white text-[#043E49] shadow-xs font-black'
                 : 'text-gray-600 hover:text-[#1A1A1A]'
             }`}
           >
-            <Building2 className="w-4 h-4 shrink-0" />
-            <span>Local Donation</span>
+            <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="truncate">Local Donation</span>
           </button>
         </div>
 
         {/* Display Bank Account Details Card */}
-        <div className="bg-gray-50 border border-gray-200/90 rounded-xl p-3.5 sm:p-4 mb-3 text-xs sm:text-sm space-y-2.5">
+        <div className="bg-gray-50 border border-gray-200/90 rounded-xl p-3 sm:p-4 mb-3 text-xs sm:text-sm space-y-2.5">
           <div className="flex items-center justify-between border-b border-gray-200/70 pb-2">
-            <span className="font-black text-[#1A1A1A] flex items-center gap-1.5 text-sm sm:text-base">
+            <span className="font-black text-[#1A1A1A] flex items-center gap-1.5 text-xs sm:text-base">
               {donationType === 'international' ? (
                 <>
-                  <Globe className="w-3.5 h-3.5 text-[#043E49]" />
+                  <Globe className="w-3.5 h-3.5 text-[#043E49] shrink-0" />
                   International Wire Transfer
                 </>
               ) : (
                 <>
-                  <Building2 className="w-3.5 h-3.5 text-[#043E49]" />
+                  <Building2 className="w-3.5 h-3.5 text-[#043E49] shrink-0" />
                   Local Bank Deposit
                 </>
               )}
             </span>
-            <span className="text-[9.5px] font-bold text-[#043E49] bg-[#043E49]/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span className="text-[9.5px] font-bold text-[#043E49] bg-[#043E49]/10 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
               <ShieldCheck className="w-2.5 h-2.5" />
               Verified
             </span>
@@ -171,31 +171,31 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
           {donationType === 'international' ? (
             /* International Fields */
             <div className="space-y-1.5 text-xs">
-              <div className="flex justify-between items-center text-[11.5px]">
+              <div className="flex justify-between items-center text-[11px] sm:text-[11.5px]">
                 <span className="text-gray-500">Bank Name:</span>
                 <span className="font-semibold text-gray-800 text-right">
                   {INTL_BANK.bankName}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center text-[11.5px]">
+              <div className="flex justify-between items-center text-[11px] sm:text-[11.5px]">
                 <span className="text-gray-500">Beneficiary:</span>
                 <span className="font-semibold text-gray-800 text-right">
                   {INTL_BANK.accountTitle}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-200/80 shadow-2xs">
-                <div>
-                  <span className="text-[9px] text-gray-400 font-bold block">IBAN / ACCOUNT #</span>
-                  <span className="font-mono font-bold text-gray-900 tracking-tight text-xs sm:text-sm">
+              <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-200/80 shadow-2xs gap-1.5">
+                <div className="min-w-0">
+                  <span className="text-[8.5px] sm:text-[9px] text-gray-400 font-bold block">IBAN / ACCOUNT #</span>
+                  <span className="font-mono font-bold text-gray-900 tracking-tight text-[11px] xs:text-xs sm:text-sm break-all select-all">
                     {INTL_BANK.iban}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(INTL_BANK.iban, 'iban')}
-                  className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer shrink-0 touch-manipulation"
                   title="Copy IBAN"
                 >
                   {copiedField === 'iban' ? (
@@ -206,18 +206,18 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-1.5">
-                <div className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-gray-200/80 shadow-2xs">
-                  <div>
-                    <span className="text-[8.5px] text-gray-400 font-bold block">SWIFT / BIC</span>
-                    <span className="font-mono font-bold text-gray-900 text-xs">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-1.5">
+                <div className="flex justify-between items-center bg-white p-1.5 sm:p-2 rounded-lg border border-gray-200/80 shadow-2xs gap-1">
+                  <div className="min-w-0">
+                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 font-bold block">SWIFT / BIC</span>
+                    <span className="font-mono font-bold text-gray-900 text-[11px] sm:text-xs truncate block">
                       {INTL_BANK.swiftBic}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(INTL_BANK.swiftBic, 'swift')}
-                    className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer shrink-0 touch-manipulation"
                     title="Copy SWIFT code"
                   >
                     {copiedField === 'swift' ? (
@@ -228,17 +228,17 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                   </button>
                 </div>
 
-                <div className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-gray-200/80 shadow-2xs">
-                  <div>
-                    <span className="text-[8.5px] text-gray-400 font-bold block">BRANCH CODE</span>
-                    <span className="font-mono font-bold text-gray-900 text-xs">
+                <div className="flex justify-between items-center bg-white p-1.5 sm:p-2 rounded-lg border border-gray-200/80 shadow-2xs gap-1">
+                  <div className="min-w-0">
+                    <span className="text-[8px] sm:text-[8.5px] text-gray-400 font-bold block">BRANCH CODE</span>
+                    <span className="font-mono font-bold text-gray-900 text-[11px] sm:text-xs truncate block">
                       {INTL_BANK.routingNumber}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(INTL_BANK.routingNumber, 'routing')}
-                    className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer shrink-0 touch-manipulation"
                     title="Copy Branch Code"
                   >
                     {copiedField === 'routing' ? (
@@ -250,38 +250,38 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                 </div>
               </div>
 
-              <div className="flex justify-between items-center text-[10.5px] text-gray-500 pt-1 border-t border-gray-200/50">
+              <div className="flex justify-between items-center text-[10px] sm:text-[10.5px] text-gray-500 pt-1 border-t border-gray-200/50">
                 <span>Accepted: <strong className="text-gray-700">{INTL_BANK.currencies}</strong></span>
               </div>
             </div>
           ) : (
             /* Local Fields */
             <div className="space-y-1.5 text-xs">
-              <div className="flex justify-between items-center text-[11.5px]">
+              <div className="flex justify-between items-center text-[11px] sm:text-[11.5px]">
                 <span className="text-gray-500">Bank Name:</span>
                 <span className="font-semibold text-gray-800 text-right">
                   {LOCAL_BANK.bankName}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center text-[11.5px]">
+              <div className="flex justify-between items-center text-[11px] sm:text-[11.5px]">
                 <span className="text-gray-500">Account Title:</span>
                 <span className="font-semibold text-gray-800 text-right">
                   {LOCAL_BANK.accountTitle}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-200/80 shadow-2xs">
-                <div>
-                  <span className="text-[9px] text-gray-400 font-bold block">ACCOUNT / MOBILE #</span>
-                  <span className="font-mono font-bold text-gray-900 tracking-tight text-xs sm:text-sm">
+              <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-200/80 shadow-2xs gap-1.5">
+                <div className="min-w-0">
+                  <span className="text-[8.5px] sm:text-[9px] text-gray-400 font-bold block">ACCOUNT / MOBILE #</span>
+                  <span className="font-mono font-bold text-gray-900 tracking-tight text-[11px] xs:text-xs sm:text-sm break-all select-all">
                     {LOCAL_BANK.accountNumber}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => copyToClipboard(LOCAL_BANK.accountNumber, 'account')}
-                  className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer shrink-0 touch-manipulation"
                   title="Copy Account Number"
                 >
                   {copiedField === 'account' ? (

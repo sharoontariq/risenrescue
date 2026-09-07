@@ -120,7 +120,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
 
   return (
     <div 
-      className="relative w-full h-full min-h-[300px] xs:min-h-[340px] sm:min-h-[400px] lg:min-h-[450px] flex items-center justify-center overflow-hidden rounded-[24px] sm:rounded-[32px] bg-[#E5E7EB] shadow-lg border border-white sm:border-2 group select-none"
+      className="relative w-full h-full min-h-[280px] xs:min-h-[330px] sm:min-h-[400px] lg:min-h-[450px] flex items-center justify-center overflow-hidden rounded-[20px] xs:rounded-[24px] sm:rounded-[32px] bg-[#E5E7EB] shadow-md sm:shadow-lg border border-white sm:border-2 group select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onTouchStart={handleTouchStart}

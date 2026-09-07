@@ -198,35 +198,35 @@ export default function App() {
         /* Home Page Sections */
         <>
           {/* Main Hero Stage */}
-          <main ref={heroRef} className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col justify-center">
+          <main ref={heroRef} className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3.5 sm:py-6 flex flex-col justify-center">
             {/* Mobile View Toggle (Visible only on mobile/tablet) */}
-            <div className="lg:hidden flex items-center justify-center p-1 bg-gray-100 border border-gray-200 rounded-xl mb-3 text-xs font-bold">
+            <div className="lg:hidden flex items-center justify-center p-1 bg-gray-100 border border-gray-200 rounded-xl mb-3 text-xs font-bold shadow-2xs">
               <button
                 onClick={() => setActiveTab('carousel')}
-                className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`flex-1 min-h-[42px] py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer touch-manipulation ${
                   activeTab === 'carousel'
                     ? 'bg-[#043E49] text-white shadow-xs'
-                    : 'text-gray-600 hover:text-[#1A1A1A]'
+                    : 'text-gray-600 hover:text-[#1A1A1A] active:bg-gray-200/60'
                 }`}
               >
-                <Sparkles className="w-4 h-4" />
-                <span>Animal Stories</span>
+                <Sparkles className="w-3.5 h-3.5" />
+                <span className="truncate">Animal Stories</span>
               </button>
               <button
                 onClick={() => setActiveTab('donate')}
-                className={`flex-1 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`flex-1 min-h-[42px] py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer touch-manipulation ${
                   activeTab === 'donate'
                     ? 'bg-[#043E49] text-white shadow-xs'
-                    : 'text-gray-600 hover:text-[#1A1A1A]'
+                    : 'text-gray-600 hover:text-[#1A1A1A] active:bg-gray-200/60'
                 }`}
               >
-                <Heart className="w-4 h-4 fill-current" />
-                <span>Donation Appeal</span>
+                <Heart className="w-3.5 h-3.5 fill-current" />
+                <span className="truncate">Donation Appeal</span>
               </button>
             </div>
 
             {/* Hero Grid Container: Left = Carousel, Right = Appeal Box */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
               {/* Carousel Column (Occupies 7 columns on desktop) */}
               <div 
                 className={`lg:col-span-7 xl:col-span-7 flex flex-col ${
@@ -289,14 +289,14 @@ export default function App() {
         type="button"
         onClick={handleHeroScroll}
         aria-label="Scroll to top or hero section"
-        className={`fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 sm:px-5 sm:py-3.5 bg-[#043E49] hover:bg-[#032f38] text-white rounded-full font-black text-xs sm:text-sm shadow-[0_10px_25px_rgba(4,62,73,0.35)] hover:shadow-[0_14px_30px_rgba(4,62,73,0.45)] border-2 border-white/90 transition-all duration-300 cursor-pointer group active:scale-95 ${
+        className={`fixed bottom-3.5 right-3.5 sm:bottom-6 sm:right-6 z-40 flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-5 sm:py-3.5 bg-[#043E49] hover:bg-[#032f38] text-white rounded-full font-black text-xs sm:text-sm shadow-[0_6px_20px_rgba(4,62,73,0.35)] hover:shadow-[0_12px_28px_rgba(4,62,73,0.45)] border-2 border-white/90 transition-all duration-300 cursor-pointer group active:scale-95 touch-manipulation ${
           showScrollTop
             ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto'
             : 'opacity-0 translate-y-4 scale-90 pointer-events-none'
         }`}
       >
-        <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-y-1 transition-transform" />
-        <span className="tracking-wide">
+        <ArrowUp className="w-3.5 h-3.5 sm:w-5 sm:h-5 group-hover:-translate-y-0.5 transition-transform" />
+        <span className="tracking-wide text-[11px] sm:text-sm">
           {currentPage === 'home' ? 'Back to Hero' : 'Back to Top'}
         </span>
       </button>

@@ -197,8 +197,8 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
                     </div>
 
                     {/* Footer Action of the Card */}
-                    <div className="pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-xs sm:text-[13px]">
-                      <span className="font-semibold text-gray-400 text-[11px]">
+                    <div className="pt-2.5 sm:pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-[13px]">
+                      <span className="font-semibold text-gray-400 text-[10.5px] sm:text-[11px]">
                         {story.tag || 'Sanctuary Care'}
                       </span>
                       <button
