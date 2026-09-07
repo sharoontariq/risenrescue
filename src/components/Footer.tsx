@@ -47,9 +47,6 @@ export const Footer: React.FC<FooterProps> = ({
             <p className="text-[11px] text-gray-400 leading-relaxed">
               Dedicated to stray animal care, compassionate veterinary rescue, and lifelong rehabilitation.
             </p>
-            <span className="inline-block text-[10px] font-semibold text-[#4fc3d0] bg-[#043E49]/60 border border-[#043E49] px-2 py-0.5 rounded-full">
-              501(c)(3) Non-Profit
-            </span>
           </div>
 
           {/* Contact Details (Phone & Email) */}
@@ -61,8 +58,8 @@ export const Footer: React.FC<FooterProps> = ({
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-[#4fc3d0] flex-shrink-0" />
                 <div>
-                  <a href="tel:18007233729" className="text-gray-200 hover:text-white font-medium transition-colors">
-                    1-800-723-3729
+                  <a href="tel:+923207482952" className="text-gray-200 hover:text-white font-medium transition-colors">
+                    +92-320-7482952
                   </a>
                   <span className="text-[9px] text-gray-500 block">24/7 Rescue Line</span>
                 </div>
@@ -70,8 +67,8 @@ export const Footer: React.FC<FooterProps> = ({
 
               <div className="flex items-center gap-2 pt-0.5">
                 <Mail className="w-3.5 h-3.5 text-[#4fc3d0] flex-shrink-0" />
-                <a href="mailto:contact@riseandrescue.org" className="text-gray-200 hover:text-white font-medium transition-colors">
-                  contact@riseandrescue.org
+                <a href="mailto:rise.rescuefsd@gmail.com" className="text-gray-200 hover:text-white font-medium transition-colors">
+                  rise.rescuefsd@gmail.com
                 </a>
               </div>
             </div>
@@ -85,10 +82,10 @@ export const Footer: React.FC<FooterProps> = ({
             <div className="flex items-start gap-2 text-[11px] text-gray-300">
               <MapPin className="w-3.5 h-3.5 text-[#4fc3d0] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-gray-200">4280 Meadowbrook Sanctuary Way</p>
-                <p className="text-gray-400 text-[10px] mt-0.5">Boulder Foothills, CO 80302</p>
+                <p className="font-medium text-gray-200">224 RB Wazirkhan Wali, St #4</p>
+                <p className="text-gray-400 text-[10px] mt-0.5">Gosiyabad, Faisalabad, 38000</p>
                 <a 
-                  href="https://maps.google.com/?q=Boulder+CO" 
+                  href="https://maps.google.com/?q=224+RB+Wazirkhan+Wali+Faisalabad" 
                   target="_blank" 
                   rel="noreferrer" 
                   className="inline-block text-[10px] text-[#4fc3d0] hover:underline mt-0.5"
@@ -183,7 +180,7 @@ export const Footer: React.FC<FooterProps> = ({
 
         {/* Bottom Minimal Copyright Bar */}
         <div className="mt-6 pt-4 border-t border-gray-800/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-[11px] text-gray-500">
-          <p>© {new Date().getFullYear()} Rise & Rescue Animal Welfare. All donations are tax-deductible.</p>
+          <p>© {new Date().getFullYear()} Rise & Rescue Animal Welfare.</p>
           <button
             onClick={onNavigateAdmin}
             className="text-gray-500 hover:text-gray-300 transition-colors cursor-pointer text-[10px]"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PhoneCall, Heart, Images, Menu, X } from 'lucide-react';
+import { PhoneCall, Heart, Menu, X } from 'lucide-react';
 import { RiseAndRescueLogo } from './RiseAndRescueLogo';
 
 interface HeaderProps {
@@ -92,14 +92,13 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onGalleryClick}
-            className={`inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold transition-all cursor-pointer px-3.5 py-1.5 rounded-full border ${
+            className={`text-xs sm:text-sm font-bold transition-all cursor-pointer px-3.5 py-1.5 rounded-full border ${
               currentPage === 'gallery'
                 ? 'bg-[#043E49]/10 text-[#043E49] border-[#043E49]/20 font-black'
                 : 'text-gray-600 hover:text-[#043E49] border-transparent hover:bg-gray-100'
             }`}
           >
-            <Images className="w-4 h-4" />
-            <span>Gallery</span>
+            Gallery
           </button>
         </nav>
 
@@ -110,7 +109,9 @@ export const Header: React.FC<HeaderProps> = ({
             <PhoneCall className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
             <span>
               <span className="text-gray-400 font-medium">Rescue:</span>{' '}
-              <strong className="text-[#1A1A1A] font-semibold">1-800-723-3729</strong>
+              <a href="tel:+923207482952" className="text-[#1A1A1A] font-semibold hover:text-[#043E49]">
+                +92-320-7482952
+              </a>
             </span>
           </div>
 
@@ -188,10 +189,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-gray-700 hover:bg-gray-50'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <Images className="w-4 h-4" />
-                <span>Photo Showcase Gallery</span>
-              </div>
+              <span>Gallery</span>
               {currentPage === 'gallery' && <span className="w-2 h-2 rounded-full bg-[#043E49]"></span>}
             </button>
 
@@ -213,8 +211,8 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <div>
                 <span className="text-[10px] text-gray-400 font-semibold block">24/7 Rescue Line</span>
-                <a href="tel:18007233729" className="font-bold text-[#1A1A1A] hover:text-[#043E49]">
-                  1-800-723-3729
+                <a href="tel:+923207482952" className="font-bold text-[#1A1A1A] hover:text-[#043E49]">
+                  +92-320-7482952
                 </a>
               </div>
             </div>

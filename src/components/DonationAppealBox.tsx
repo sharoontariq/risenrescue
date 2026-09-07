@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Heart, 
   Lock, 
@@ -30,9 +31,6 @@ interface LocalBankInfo {
   bankName: string;
   accountTitle: string;
   accountNumber: string;
-  branchCode: string;
-  routingNumber: string;
-  transferRef: string;
 }
 
 const INTL_BANK: IntlBankInfo = {
@@ -41,24 +39,35 @@ const INTL_BANK: IntlBankInfo = {
   iban: 'PK96 ALFH 0106 0010 1002 6840',
   swiftBic: 'ALFHPKKAXXX',
   routingNumber: '0106',
-  bankCountry: 'United States',
+  bankCountry: 'Pakistan',
   currencies: 'USD, EUR, GBP, CAD'
 };
 
 const LOCAL_BANK: LocalBankInfo = {
-  bankName: 'Community First Bank of Colorado',
-  accountTitle: 'Rise & Rescue Local Sanctuary Care',
-  accountNumber: '8492-3019-4820-11',
-  branchCode: '084-210',
-  routingNumber: '102000076',
-  transferRef: 'RESCUE-GIFT'
+  bankName: 'Easy Paisa',
+  accountTitle: 'Sharoon Tariq',
+  accountNumber: '0311-7432755'
 };
+
+const MOTIVATIONAL_WORDS = [
+  'Give Hope',
+  'Save Lives',
+  'Be Their Voice'
+];
 
 export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
   activeAnimalName = 'rescued animals'
 }) => {
   const [donationType, setDonationType] = useState<'international' | 'local'>('international');
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [wordIndex, setWordIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setWordIndex((prev) => (prev + 1) % MOTIVATIONAL_WORDS.length);
+    }, 2400);
+    return () => clearInterval(timer);
+  }, []);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -82,9 +91,23 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
               <h3 className="font-black text-base sm:text-xl text-[#1A1A1A] tracking-tight leading-tight">
                 Direct Bank Donation
               </h3>
-              <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider">
-                Support {activeAnimalName}
-              </p>
+              <div className="text-xs sm:text-[12.5px] text-[#043E49] font-bold tracking-normal mt-0.5 flex items-center gap-1.5 h-5">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
+                <div className="relative inline-flex items-center h-5 overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={wordIndex}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.3, ease: 'easeOut' }}
+                      className="inline-block whitespace-nowrap text-[#043E49]"
+                    >
+                      {MOTIVATIONAL_WORDS[wordIndex]}
+                    </motion.span>
+                  </AnimatePresence>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -250,7 +273,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
 
               <div className="flex justify-between items-center bg-white p-2 rounded-lg border border-gray-200/80 shadow-2xs">
                 <div>
-                  <span className="text-[9px] text-gray-400 font-bold block">ACCOUNT NUMBER</span>
+                  <span className="text-[9px] text-gray-400 font-bold block">ACCOUNT / MOBILE #</span>
                   <span className="font-mono font-bold text-gray-900 tracking-tight text-xs sm:text-sm">
                     {LOCAL_BANK.accountNumber}
                   </span>
@@ -266,61 +289,6 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-1.5">
-                <div className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-gray-200/80 shadow-2xs">
-                  <div>
-                    <span className="text-[8.5px] text-gray-400 font-bold block">BRANCH CODE</span>
-                    <span className="font-mono font-bold text-gray-900 text-xs">
-                      {LOCAL_BANK.branchCode}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(LOCAL_BANK.branchCode, 'branch')}
-                    className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
-                    title="Copy Branch Code"
-                  >
-                    {copiedField === 'branch' ? (
-                      <Check className="w-3 h-3 text-[#043E49]" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                </div>
-
-                <div className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-gray-200/80 shadow-2xs">
-                  <div>
-                    <span className="text-[8.5px] text-gray-400 font-bold block">ROUTING / ACH</span>
-                    <span className="font-mono font-bold text-gray-900 text-xs">
-                      {LOCAL_BANK.routingNumber}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => copyToClipboard(LOCAL_BANK.routingNumber, 'localrouting')}
-                    className="p-1 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer"
-                    title="Copy Routing Number"
-                  >
-                    {copiedField === 'localrouting' ? (
-                      <Check className="w-3 h-3 text-[#043E49]" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center text-[10.5px] text-gray-500 pt-1 border-t border-gray-200/50">
-                <span>Ref: <strong className="text-gray-800">{LOCAL_BANK.transferRef}</strong></span>
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(LOCAL_BANK.transferRef, 'ref')}
-                  className="text-[10.5px] text-[#043E49] font-bold hover:underline cursor-pointer"
-                >
-                  {copiedField === 'ref' ? 'Copied!' : 'Copy Reference'}
                 </button>
               </div>
             </div>
