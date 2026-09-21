@@ -242,6 +242,173 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     reader.readAsDataURL(file);
   };
 
+  // Add new What We Do Pillar Card
+  const handleAddWhatWeDoCard = () => {
+    const newPillar: WhatWeDoItem = {
+      id: `pillar-${Date.now()}`,
+      tag: 'New Mission Pillar',
+      title: 'Emergency Medical Rescue',
+      metricNumber: '24/7',
+      metricLabel: 'Rapid Response Care',
+      description: 'Dedicated rescue operations providing immediate triage, emergency surgical intervention, and lifelong shelter rehabilitation.',
+      imageUrl: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
+      imageAlt: 'Sanctuary pillar rescue initiative'
+    };
+    setFormData(prev => ({
+      ...prev,
+      home: {
+        ...prev.home,
+        whatWeDoItems: [...prev.home.whatWeDoItems, newPillar]
+      }
+    }));
+  };
+
+  // Upload or replace local image for a specific What We Do card
+  const handleWhatWeDoImageUpload = (index: number, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, WEBP, etc.)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      if (dataUrl) {
+        const updated = [...formData.home.whatWeDoItems];
+        updated[index] = {
+          ...updated[index],
+          imageUrl: dataUrl,
+          imageAlt: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ') || updated[index].imageAlt
+        };
+        setFormData(prev => ({
+          ...prev,
+          home: {
+            ...prev.home,
+            whatWeDoItems: updated
+          }
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Delete What We Do card
+  const handleDeleteWhatWeDoCard = (index: number) => {
+    if (formData.home.whatWeDoItems.length <= 1) {
+      alert('You must keep at least 1 mission pillar card.');
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      home: {
+        ...prev.home,
+        whatWeDoItems: prev.home.whatWeDoItems.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  // Move What We Do card
+  const handleMoveWhatWeDoCard = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= formData.home.whatWeDoItems.length) return;
+    const updated = [...formData.home.whatWeDoItems];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    setFormData(prev => ({
+      ...prev,
+      home: {
+        ...prev.home,
+        whatWeDoItems: updated
+      }
+    }));
+  };
+
+  // Add Rescue Story Card
+  const handleAddStoryCard = () => {
+    const newStory: StoryCardItem = {
+      id: `story-${Date.now()}`,
+      name: 'New Animal',
+      title: 'Second Chance at Life',
+      category: 'Canine Rehabilitation',
+      description: 'Found injured and malnourished, now flourishing under medical care and compassion.',
+      imageUrl: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
+      imageAlt: 'Rescued animal recovering safely',
+      status: 'Recovering in Sanctuary'
+    };
+    setFormData(prev => ({
+      ...prev,
+      home: {
+        ...prev.home,
+        storiesItems: [...prev.home.storiesItems, newStory]
+      }
+    }));
+  };
+
+  // Upload local image for Rescue Story Card
+  const handleStoryImageUpload = (index: number, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file (PNG, JPG, WEBP, etc.)');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      if (result) {
+        setFormData(prev => {
+          const updated = [...prev.home.storiesItems];
+          if (updated[index]) {
+            updated[index] = {
+              ...updated[index],
+              imageUrl: result,
+              imageAlt: updated[index].name || file.name
+            };
+          }
+          return {
+            ...prev,
+            home: {
+              ...prev.home,
+              storiesItems: updated
+            }
+          };
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Delete Story Card
+  const handleDeleteStoryCard = (index: number) => {
+    if (formData.home.storiesItems.length <= 1) {
+      alert('You must keep at least one story card.');
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      home: {
+        ...prev.home,
+        storiesItems: prev.home.storiesItems.filter((_, i) => i !== index)
+      }
+    }));
+  };
+
+  // Move Story Card
+  const handleMoveStoryCard = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= formData.home.storiesItems.length) return;
+    const updated = [...formData.home.storiesItems];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    setFormData(prev => ({
+      ...prev,
+      home: {
+        ...prev.home,
+        storiesItems: updated
+      }
+    }));
+  };
+
   // Gallery photo file handling
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -964,103 +1131,199 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
 
               {/* What We Do Items List */}
-              <div className="pt-2 space-y-3">
-                <h3 className="text-xs font-black uppercase tracking-wider text-gray-600">
-                  Mission Pillar Cards ({formData.home.whatWeDoItems.length})
-                </h3>
-                <div className="space-y-3">
+              <div className="pt-2 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                  <div>
+                    <h3 className="text-sm font-black text-gray-900 flex items-center gap-2">
+                      <span>Mission Pillar Cards</span>
+                      <span className="px-2 py-0.5 text-xs font-bold bg-[#043E49]/10 text-[#043E49] rounded-full">
+                        {formData.home.whatWeDoItems.length} {formData.home.whatWeDoItems.length === 1 ? 'Card' : 'Cards'}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Add and manage your mission cards with local image uploads and instant previews.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddWhatWeDoCard}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer shadow-2xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Add Card</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer shadow-2xs"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save & Publish</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {formData.home.whatWeDoItems.map((item, idx) => (
-                    <div key={item.id || idx} className="p-3.5 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-gray-800">
-                          Pillar {idx + 1}: {item.title}
-                        </span>
-                        <span className="text-[10px] font-semibold bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
-                          {item.tag}
-                        </span>
+                    <div 
+                      key={item.id || idx} 
+                      className="p-3 rounded-xl border border-gray-200 bg-white hover:border-[#043E49]/40 shadow-2xs transition-all space-y-2.5"
+                    >
+                      {/* Top Header of Card */}
+                      <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-5 h-5 rounded-full bg-[#043E49]/10 text-[#043E49] font-black text-[11px] flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <span className="text-xs font-black text-gray-900 truncate">
+                            {item.title || 'Untitled Card'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            disabled={idx === 0}
+                            onClick={() => handleMoveWhatWeDoCard(idx, idx - 1)}
+                            className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                            title="Move Up"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={idx === formData.home.whatWeDoItems.length - 1}
+                            onClick={() => handleMoveWhatWeDoCard(idx, idx + 1)}
+                            className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                            title="Move Down"
+                          >
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                          {formData.home.whatWeDoItems.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteWhatWeDoCard(idx)}
+                              className="p-1 rounded text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer ml-0.5"
+                              title="Delete Card"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Tag</label>
-                          <input
-                            type="text"
-                            value={item.tag}
-                            onChange={(e) => {
-                              const updated = [...formData.home.whatWeDoItems];
-                              updated[idx].tag = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, whatWeDoItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
+
+                      {/* Compact 2-Column Body: Thumbnail + Inputs */}
+                      <div className="flex flex-col sm:flex-row gap-3 items-start">
+                        {/* Compact Image Thumbnail & Upload */}
+                        <div className="w-full sm:w-32 shrink-0">
+                          <div className="relative group rounded-lg overflow-hidden border border-gray-200 bg-gray-50 h-24 w-full">
+                            {item.imageUrl ? (
+                              <>
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.imageAlt || item.title}
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
+                                  <label className="px-2 py-1 rounded bg-white text-[#043E49] text-[10px] font-bold cursor-pointer shadow hover:bg-gray-100 inline-flex items-center gap-1">
+                                    <Upload className="w-3 h-3" />
+                                    <span>Change</span>
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      onChange={(e) => handleWhatWeDoImageUpload(idx, e.target.files)}
+                                    />
+                                  </label>
+                                </div>
+                              </>
+                            ) : (
+                              <label className="w-full h-full flex flex-col items-center justify-center p-2 cursor-pointer hover:bg-gray-100 transition-colors text-center">
+                                <Upload className="w-4 h-4 text-gray-400 mb-0.5" />
+                                <span className="text-[10px] font-bold text-gray-600">Upload</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleWhatWeDoImageUpload(idx, e.target.files)}
+                                />
+                              </label>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Title</label>
-                          <input
-                            type="text"
-                            value={item.title}
-                            onChange={(e) => {
-                              const updated = [...formData.home.whatWeDoItems];
-                              updated[idx].title = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, whatWeDoItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Metric Number</label>
-                          <input
-                            type="text"
-                            value={item.metricNumber || ''}
-                            onChange={(e) => {
-                              const updated = [...formData.home.whatWeDoItems];
-                              updated[idx].metricNumber = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, whatWeDoItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Metric Label</label>
-                          <input
-                            type="text"
-                            value={item.metricLabel || ''}
-                            onChange={(e) => {
-                              const updated = [...formData.home.whatWeDoItems];
-                              updated[idx].metricLabel = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, whatWeDoItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Description</label>
-                          <textarea
-                            rows={2}
-                            value={item.description}
-                            onChange={(e) => {
-                              const updated = [...formData.home.whatWeDoItems];
-                              updated[idx].description = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, whatWeDoItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Image URL</label>
-                          <input
-                            type="text"
-                            value={item.imageUrl}
-                            onChange={(e) => {
-                              const updated = [...formData.home.whatWeDoItems];
-                              updated[idx].imageUrl = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, whatWeDoItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
+
+                        {/* Title, Tag & Description in compact layout */}
+                        <div className="flex-1 w-full space-y-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Title</label>
+                              <input
+                                type="text"
+                                value={item.title}
+                                onChange={(e) => {
+                                  const updated = [...formData.home.whatWeDoItems];
+                                  updated[idx].title = e.target.value;
+                                  setFormData({ ...formData, home: { ...formData.home, whatWeDoItems: updated } });
+                                }}
+                                placeholder="Pillar Title"
+                                className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs focus:ring-1 focus:ring-[#043E49] focus:border-[#043E49]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Tag Badge</label>
+                              <input
+                                type="text"
+                                value={item.tag}
+                                onChange={(e) => {
+                                  const updated = [...formData.home.whatWeDoItems];
+                                  updated[idx].tag = e.target.value;
+                                  setFormData({ ...formData, home: { ...formData.home, whatWeDoItems: updated } });
+                                }}
+                                placeholder="Tag Name"
+                                className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs focus:ring-1 focus:ring-[#043E49] focus:border-[#043E49]"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Description</label>
+                            <textarea
+                              rows={2}
+                              value={item.description}
+                              onChange={(e) => {
+                                const updated = [...formData.home.whatWeDoItems];
+                                updated[idx].description = e.target.value;
+                                setFormData({ ...formData, home: { ...formData.home, whatWeDoItems: updated } });
+                              }}
+                              placeholder="Brief description of this pillar..."
+                              className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs focus:ring-1 focus:ring-[#043E49] focus:border-[#043E49]"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
+
+                  {/* Add New Card Tile (Compact) */}
+                  <button
+                    type="button"
+                    onClick={handleAddWhatWeDoCard}
+                    className="border-2 border-dashed border-gray-200 hover:border-[#043E49] bg-gray-50/50 hover:bg-[#043E49]/5 rounded-xl p-4 min-h-[140px] flex items-center justify-center gap-3 text-center transition-all cursor-pointer group"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-[#043E49]/10 group-hover:bg-[#043E49] text-[#043E49] group-hover:text-white flex items-center justify-center transition-colors">
+                      <Plus className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-gray-800 group-hover:text-[#043E49]">
+                        + Add Another Pillar Card
+                      </p>
+                      <p className="text-[11px] text-gray-500">
+                        Create a new card with custom image and text
+                      </p>
+                    </div>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1123,138 +1386,214 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
-              {/* Stories Cards */}
-              <div className="pt-2 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-gray-600">
-                    Rescue Story Cards ({formData.home.storiesItems.length})
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newStory: StoryCardItem = {
-                        id: `story-${Date.now()}`,
-                        name: 'New Animal',
-                        title: 'Second Chance at Life',
-                        category: 'Canine Rehabilitation',
-                        description: 'Found injured and malnourished, now flourishing under medical care and compassion.',
-                        imageUrl: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
-                        imageAlt: 'Rescued animal recovering safely',
-                        status: 'Recovering in Sanctuary'
-                      };
-                      setFormData({
-                        ...formData,
-                        home: {
-                          ...formData.home,
-                          storiesItems: [...formData.home.storiesItems, newStory]
-                        }
-                      });
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Story</span>
-                  </button>
+              {/* Rescue Story Cards List */}
+              <div className="pt-2 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                  <div>
+                    <h3 className="text-sm font-black text-gray-900 flex items-center gap-2">
+                      <span>Rescue Story Cards</span>
+                      <span className="px-2 py-0.5 text-xs font-bold bg-[#043E49]/10 text-[#043E49] rounded-full">
+                        {formData.home.storiesItems.length} {formData.home.storiesItems.length === 1 ? 'Card' : 'Cards'}
+                      </span>
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Add and manage animal rescue stories with local image uploads and instant previews.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleAddStoryCard}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer shadow-2xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Add Story</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer shadow-2xs"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save & Publish</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                   {formData.home.storiesItems.map((story, idx) => (
-                    <div key={story.id || idx} className="p-3.5 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-gray-800">
-                          {story.name} — {story.title}
-                        </span>
-                        {formData.home.storiesItems.length > 1 && (
+                    <div 
+                      key={story.id || idx} 
+                      className="p-3 rounded-xl border border-gray-200 bg-white hover:border-[#043E49]/40 shadow-2xs transition-all space-y-2.5"
+                    >
+                      {/* Top Header of Card */}
+                      <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="w-5 h-5 rounded-full bg-[#043E49]/10 text-[#043E49] font-black text-[11px] flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <span className="text-xs font-black text-gray-900 truncate">
+                            {story.name || 'Untitled Animal'} — {story.title || 'Story'}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
                           <button
                             type="button"
-                            onClick={() => {
-                              if (window.confirm(`Delete story for "${story.name}"?`)) {
-                                setFormData({
-                                  ...formData,
-                                  home: {
-                                    ...formData.home,
-                                    storiesItems: formData.home.storiesItems.filter((_, i) => i !== idx)
-                                  }
-                                });
-                              }
-                            }}
-                            className="text-rose-600 hover:text-rose-800 text-xs font-bold inline-flex items-center gap-1 cursor-pointer"
+                            disabled={idx === 0}
+                            onClick={() => handleMoveStoryCard(idx, idx - 1)}
+                            className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                            title="Move Up"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>Delete</span>
+                            <ArrowLeft className="w-3.5 h-3.5" />
                           </button>
-                        )}
+                          <button
+                            type="button"
+                            disabled={idx === formData.home.storiesItems.length - 1}
+                            onClick={() => handleMoveStoryCard(idx, idx + 1)}
+                            className="p-1 rounded text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                            title="Move Down"
+                          >
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                          {formData.home.storiesItems.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteStoryCard(idx)}
+                              className="p-1 rounded text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer ml-0.5"
+                              title="Delete Story"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Animal Name</label>
-                          <input
-                            type="text"
-                            value={story.name}
-                            onChange={(e) => {
-                              const updated = [...formData.home.storiesItems];
-                              updated[idx].name = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
+                      {/* Compact 2-Column Body: Thumbnail + Inputs */}
+                      <div className="flex flex-col sm:flex-row gap-3 items-start">
+                        {/* Compact Image Thumbnail & Upload */}
+                        <div className="w-full sm:w-32 shrink-0">
+                          <div className="relative group rounded-lg overflow-hidden border border-gray-200 bg-gray-50 h-24 w-full">
+                            {story.imageUrl ? (
+                              <>
+                                <img
+                                  src={story.imageUrl}
+                                  alt={story.imageAlt || story.name}
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
+                                  <label className="px-2 py-1 rounded bg-white text-[#043E49] text-[10px] font-bold cursor-pointer shadow hover:bg-gray-100 inline-flex items-center gap-1">
+                                    <Upload className="w-3 h-3" />
+                                    <span>Change</span>
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      onChange={(e) => handleStoryImageUpload(idx, e.target.files)}
+                                    />
+                                  </label>
+                                </div>
+                              </>
+                            ) : (
+                              <label className="w-full h-full flex flex-col items-center justify-center p-2 cursor-pointer hover:bg-gray-100 transition-colors text-center">
+                                <Upload className="w-4 h-4 text-gray-400 mb-0.5" />
+                                <span className="text-[10px] font-bold text-gray-600">Upload</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => handleStoryImageUpload(idx, e.target.files)}
+                                />
+                              </label>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Story Heading</label>
-                          <input
-                            type="text"
-                            value={story.title}
-                            onChange={(e) => {
-                              const updated = [...formData.home.storiesItems];
-                              updated[idx].title = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Status Badge</label>
-                          <input
-                            type="text"
-                            value={story.status || ''}
-                            onChange={(e) => {
-                              const updated = [...formData.home.storiesItems];
-                              updated[idx].status = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Description</label>
-                          <textarea
-                            rows={2}
-                            value={story.description}
-                            onChange={(e) => {
-                              const updated = [...formData.home.storiesItems];
-                              updated[idx].description = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Photo URL</label>
-                          <input
-                            type="text"
-                            value={story.imageUrl}
-                            onChange={(e) => {
-                              const updated = [...formData.home.storiesItems];
-                              updated[idx].imageUrl = e.target.value;
-                              setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
+
+                        {/* Story Details in compact layout */}
+                        <div className="flex-1 w-full space-y-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Animal Name</label>
+                              <input
+                                type="text"
+                                value={story.name}
+                                onChange={(e) => {
+                                  const updated = [...formData.home.storiesItems];
+                                  updated[idx].name = e.target.value;
+                                  setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
+                                }}
+                                placeholder="Animal Name"
+                                className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs focus:ring-1 focus:ring-[#043E49] focus:border-[#043E49]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Story Heading</label>
+                              <input
+                                type="text"
+                                value={story.title}
+                                onChange={(e) => {
+                                  const updated = [...formData.home.storiesItems];
+                                  updated[idx].title = e.target.value;
+                                  setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
+                                }}
+                                placeholder="Story Heading"
+                                className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs focus:ring-1 focus:ring-[#043E49] focus:border-[#043E49]"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Status Badge</label>
+                              <input
+                                type="text"
+                                value={story.status || ''}
+                                onChange={(e) => {
+                                  const updated = [...formData.home.storiesItems];
+                                  updated[idx].status = e.target.value;
+                                  setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
+                                }}
+                                placeholder="e.g. In Sanctuary"
+                                className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs focus:ring-1 focus:ring-[#043E49] focus:border-[#043E49]"
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Description</label>
+                            <textarea
+                              rows={2}
+                              value={story.description}
+                              onChange={(e) => {
+                                const updated = [...formData.home.storiesItems];
+                                updated[idx].description = e.target.value;
+                                setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
+                              }}
+                              placeholder="Brief description of the animal and its recovery..."
+                              className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs focus:ring-1 focus:ring-[#043E49] focus:border-[#043E49]"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
+
+                  {/* Add New Story Tile (Compact) */}
+                  <button
+                    type="button"
+                    onClick={handleAddStoryCard}
+                    className="border-2 border-dashed border-gray-200 hover:border-[#043E49] bg-gray-50/50 hover:bg-[#043E49]/5 rounded-xl p-4 min-h-[140px] flex items-center justify-center gap-3 text-center transition-all cursor-pointer group"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-[#043E49]/10 group-hover:bg-[#043E49] text-[#043E49] group-hover:text-white flex items-center justify-center transition-colors">
+                      <Plus className="w-5 h-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-gray-800 group-hover:text-[#043E49]">
+                        + Add Another Story Card
+                      </p>
+                      <p className="text-[11px] text-gray-500">
+                        Create a new rescue story with photo and recovery details
+                      </p>
+                    </div>
+                  </button>
                 </div>
               </div>
             </div>

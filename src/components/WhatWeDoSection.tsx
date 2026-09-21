@@ -166,18 +166,6 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = ({
                   <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
                     {currentItem.description}
                   </p>
-
-                  {/* Highlight Stat Metric Card */}
-                  {currentItem.metricNumber && (
-                    <div className="bg-[#F8F9FA] rounded-xl p-3 sm:p-4 border border-gray-200/80 flex flex-col xs:flex-row items-start xs:items-center gap-1.5 xs:gap-3.5">
-                      <div className="text-lg sm:text-2xl font-black text-[#043E49] tracking-tight">
-                        {currentItem.metricNumber}
-                      </div>
-                      <div className="text-xs sm:text-[13px] font-semibold text-gray-600 xs:border-l border-gray-200 xs:pl-3.5">
-                        {currentItem.metricLabel}
-                      </div>
-                    </div>
-                  )}
                 </motion.div>
               </AnimatePresence>
 
