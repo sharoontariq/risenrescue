@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { PhoneCall, Heart, Menu, X } from 'lucide-react';
 import { RiseAndRescueLogo } from './RiseAndRescueLogo';
+import { HeaderContent } from '../siteContent';
 
 interface HeaderProps {
-  currentPage?: 'home' | 'gallery' | 'admin' | 'about' | 'goals';
+  currentPage?: 'home' | 'gallery' | 'about' | 'goals';
+  content?: HeaderContent;
   onHomeClick?: () => void;
   onAboutClick?: () => void;
   onGoalsClick?: () => void;
@@ -11,21 +13,31 @@ interface HeaderProps {
   onWhatWeDoClick?: () => void;
   onStoriesClick?: () => void;
   onGalleryClick?: () => void;
-  onAdminClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
   currentPage = 'home',
+  content,
   onHomeClick,
   onAboutClick,
   onGoalsClick,
   onDonateClick, 
   onWhatWeDoClick, 
   onStoriesClick,
-  onGalleryClick,
-  onAdminClick
+  onGalleryClick
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const brandName = content?.brandName || 'RISE & RESCUE ANIMAL WELFARE';
+  const brandTagline = content?.brandTagline || 'Stray Animal Care & Rehabilitation';
+  const rescuePhone = content?.rescuePhone || '+92-320-7482952';
+  const donateButtonText = content?.donateButtonText || 'Donate';
+  const navLinks = content?.navLinks || {
+    home: 'Home',
+    about: 'About Us',
+    goals: 'Future Goals',
+    gallery: 'Gallery'
+  };
 
   const handleNavAction = (action?: () => void) => {
     if (action) action();
@@ -46,11 +58,11 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-xs xs:text-sm sm:text-base lg:text-lg font-black tracking-tight text-[#1A1A1A] truncate">
-                RISE & RESCUE<span className="hidden xs:inline"> ANIMAL WELFARE</span>
+                {brandName}
               </span>
             </div>
             <p className="text-[9.5px] sm:text-[11.5px] text-gray-500 hidden sm:block leading-tight truncate">
-              Stray Animal Care & Rehabilitation
+              {brandTagline}
             </p>
           </div>
         </div>
@@ -65,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-gray-600 hover:text-[#043E49] border-transparent hover:bg-gray-100'
             }`}
           >
-            Home
+            {navLinks.home}
           </button>
 
           <button
@@ -76,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-gray-600 hover:text-[#043E49] border-transparent hover:bg-gray-100'
             }`}
           >
-            About Us
+            {navLinks.about}
           </button>
 
           <button
@@ -87,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-gray-600 hover:text-[#043E49] border-transparent hover:bg-gray-100'
             }`}
           >
-            Future Goals
+            {navLinks.goals}
           </button>
 
           <button
@@ -98,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-gray-600 hover:text-[#043E49] border-transparent hover:bg-gray-100'
             }`}
           >
-            Gallery
+            {navLinks.gallery}
           </button>
         </nav>
 
@@ -109,8 +121,8 @@ export const Header: React.FC<HeaderProps> = ({
             <PhoneCall className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
             <span>
               <span className="text-gray-400 font-medium">Rescue:</span>{' '}
-              <a href="tel:+923207482952" className="text-[#1A1A1A] font-semibold hover:text-[#043E49]">
-                +92-320-7482952
+              <a href={`tel:${rescuePhone.replace(/[^0-9+]/g, '')}`} className="text-[#1A1A1A] font-semibold hover:text-[#043E49]">
+                {rescuePhone}
               </a>
             </span>
           </div>
@@ -122,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-1 sm:gap-1.5 px-3 xs:px-3.5 sm:px-5 py-1.5 sm:py-2 text-[11px] sm:text-sm font-bold text-white bg-[#043E49] hover:bg-[#032f38] active:bg-[#02232a] transition-all rounded-full shadow-2xs cursor-pointer whitespace-nowrap touch-manipulation"
           >
             <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white text-white" />
-            <span>Donate</span>
+            <span>{donateButtonText}</span>
           </button>
 
           {/* Mobile Hamburger Menu Toggle Button (Visible only on < md) */}
@@ -153,7 +165,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
               }`}
             >
-              <span>Home</span>
+              <span>{navLinks.home}</span>
               {currentPage === 'home' && <span className="w-2 h-2 rounded-full bg-[#043E49]"></span>}
             </button>
 
@@ -165,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
               }`}
             >
-              <span>About Us</span>
+              <span>{navLinks.about}</span>
               {currentPage === 'about' && <span className="w-2 h-2 rounded-full bg-[#043E49]"></span>}
             </button>
 
@@ -177,7 +189,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
               }`}
             >
-              <span>Future Goals</span>
+              <span>{navLinks.goals}</span>
               {currentPage === 'goals' && <span className="w-2 h-2 rounded-full bg-[#043E49]"></span>}
             </button>
 
@@ -189,18 +201,9 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-gray-700 hover:bg-gray-50 active:bg-gray-100'
               }`}
             >
-              <span>Gallery</span>
+              <span>{navLinks.gallery}</span>
               {currentPage === 'gallery' && <span className="w-2 h-2 rounded-full bg-[#043E49]"></span>}
             </button>
-
-            {onAdminClick && (
-              <button
-                onClick={() => handleNavAction(onAdminClick)}
-                className={`flex items-center justify-between px-3.5 py-3 min-h-[44px] rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer text-gray-500 hover:text-gray-800 hover:bg-gray-50 active:bg-gray-100 touch-manipulation`}
-              >
-                <span>Admin Panel</span>
-              </button>
-            )}
           </nav>
 
           {/* Emergency 24/7 Hotline Call Box on Mobile */}
@@ -211,8 +214,8 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
               <div className="min-w-0">
                 <span className="text-[10px] text-gray-400 font-semibold block">24/7 Rescue Line</span>
-                <a href="tel:+923207482952" className="font-bold text-[#1A1A1A] hover:text-[#043E49] truncate block">
-                  +92-320-7482952
+                <a href={`tel:${rescuePhone.replace(/[^0-9+]/g, '')}`} className="font-bold text-[#1A1A1A] hover:text-[#043E49] truncate block">
+                  {rescuePhone}
                 </a>
               </div>
             </div>

@@ -8,7 +8,11 @@ import {
   ArrowUpRight 
 } from 'lucide-react';
 
+import { FutureGoalsContent, FutureGoalItem } from '../siteContent';
+
 interface FutureGoalsPageProps {
+  content?: FutureGoalsContent;
+  goals?: FutureGoalItem[];
   onBackToHome?: () => void;
   onNavigateAbout?: () => void;
   onNavigateGallery?: () => void;
@@ -126,11 +130,29 @@ const FUTURE_GOALS: GoalSection[] = [
 ];
 
 export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
+  content,
+  goals,
   onBackToHome,
   onNavigateAbout,
   onNavigateGallery,
   onDonateClick
 }) => {
+  const pageTitle = content?.pageTitle || 'Future Goals';
+  const introBadge = content?.introBadge || 'Strategic Horizon 2026–2030';
+  const introHeading = content?.introHeading || 'Our Strategic Initiatives for Wildlife & Sanctuary Protection';
+  const introDescription = content?.introDescription || 'Discover the six core pillars shaping the future of Rise & Rescue. Each initiative addresses long-term habitat preservation, clinical emergency capabilities, and community stewardship across Colorado.';
+  
+  const activeGoals = (content?.goals && content.goals.length > 0)
+    ? content.goals
+    : (goals && goals.length > 0)
+    ? goals
+    : FUTURE_GOALS;
+
+  const ctaHeading = content?.ctaHeading || 'Help Us Turn These Goals into Reality';
+  const ctaDescription = content?.ctaDescription || 'Every contribution directly aids injured, orphaned, and resident sanctuary animals. Join us in building permanent foothill havens and advanced trauma care.';
+  const ctaDonateButtonText = content?.ctaDonateButtonText || 'Make a Future Goals Contribution';
+  const ctaGalleryButtonText = content?.ctaGalleryButtonText || 'View Animal Gallery';
+
   return (
     <div className="w-full bg-[#F8F9FA] min-h-screen pb-14">
       {/* Top Header Breadcrumb Bar */}
@@ -150,7 +172,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
               )}
               <div>
                 <h1 className="text-lg sm:text-xl lg:text-2xl font-black text-[#1A1A1A] tracking-tight">
-                  Future Goals
+                  {pageTitle}
                 </h1>
               </div>
             </div>
@@ -185,21 +207,21 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
         <div className="max-w-3xl space-y-1.5">
           <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#043E49] bg-[#043E49]/10 px-2.5 py-0.5 rounded-full border border-[#043E49]/20">
             <Sparkles className="w-3 h-3" />
-            <span>Strategic Horizon 2026–2030</span>
+            <span>{introBadge}</span>
           </div>
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-[#1A1A1A] tracking-tight">
-            Our Strategic Initiatives for Wildlife & Sanctuary Protection
+            {introHeading}
           </h2>
           <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-            Discover the six core pillars shaping the future of Rise & Rescue. Each initiative addresses long-term habitat preservation, clinical emergency capabilities, and community stewardship across Colorado.
+            {introDescription}
           </p>
         </div>
 
         {/* 6 Horizontal Goal Sections */}
         <div className="space-y-4 sm:space-y-6">
-          {FUTURE_GOALS.map((goal, index) => (
+          {activeGoals.map((goal, index) => (
             <section
-              key={goal.id}
+              key={goal.id || index}
               id={`future-goal-section-${index + 1}`}
               className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-2xs hover:shadow-sm transition-all duration-300 flex flex-col lg:flex-row items-stretch"
             >
@@ -271,10 +293,10 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
         {/* Footer Support Banner */}
         <section className="bg-[#111827] text-white rounded-2xl p-5 sm:p-7 text-center space-y-3 border border-gray-800">
           <h3 className="text-lg sm:text-xl lg:text-2xl font-black tracking-tight">
-            Help Us Turn These Goals into Reality
+            {ctaHeading}
           </h3>
           <p className="text-xs sm:text-sm text-gray-400 max-w-xl mx-auto leading-relaxed">
-            Every contribution directly aids injured, orphaned, and resident sanctuary animals. Join us in building permanent foothill havens and advanced trauma care.
+            {ctaDescription}
           </p>
           <div className="flex items-center justify-center gap-2.5 pt-1">
             {onDonateClick && (
@@ -283,7 +305,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white shadow-2xs transition-colors cursor-pointer"
               >
                 <Heart className="w-3.5 h-3.5 fill-white" />
-                <span>Make a Future Goals Contribution</span>
+                <span>{ctaDonateButtonText}</span>
               </button>
             )}
             {onNavigateGallery && (
@@ -291,7 +313,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
                 onClick={onNavigateGallery}
                 className="inline-flex items-center gap-1 px-3.5 py-2 rounded-full text-xs font-bold bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 transition-colors cursor-pointer"
               >
-                <span>View Animal Gallery</span>
+                <span>{ctaGalleryButtonText}</span>
               </button>
             )}
           </div>

@@ -5,13 +5,15 @@ import { STORIES_DATA } from '../data/storiesData';
 import { StoryCardItem } from '../types';
 
 interface StoriesSectionProps {
+  stories?: StoryCardItem[];
   onSupportAnimal?: (animalName: string) => void;
 }
 
 const ITEMS_PER_VIEW = 2;
 const AUTOPLAY_INTERVAL_MS = 7000;
 
-export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal }) => {
+export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories, onSupportAnimal }) => {
+  const activeStories = (stories && stories.length > 0) ? stories : STORIES_DATA;
   const [currentPage, setCurrentPage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
@@ -29,7 +31,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
   }, []);
 
   const itemsPerView = isMobile ? 1 : 2;
-  const totalPages = Math.ceil(STORIES_DATA.length / itemsPerView);
+  const totalPages = Math.max(1, Math.ceil(activeStories.length / itemsPerView));
 
   useEffect(() => {
     if (currentPage >= totalPages) {
@@ -73,7 +75,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ onSupportAnimal 
   }, [isPlaying, isHovered, currentPage, totalPages]);
 
   // Extract the cards for the current carousel view
-  const currentStories = STORIES_DATA.slice(
+  const currentStories = activeStories.slice(
     currentPage * itemsPerView,
     currentPage * itemsPerView + itemsPerView
   );

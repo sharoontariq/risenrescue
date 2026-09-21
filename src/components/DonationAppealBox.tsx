@@ -11,11 +11,7 @@ import {
   Info
 } from 'lucide-react';
 import { DonationSubmission } from '../types';
-
-interface DonationAppealBoxProps {
-  onSuccessfulDonation?: (submission: DonationSubmission) => void;
-  activeAnimalName?: string;
-}
+import { BankAccountDetails } from '../siteContent';
 
 interface IntlBankInfo {
   bankName: string;
@@ -33,7 +29,17 @@ interface LocalBankInfo {
   accountNumber: string;
 }
 
-const INTL_BANK: IntlBankInfo = {
+interface DonationAppealBoxProps {
+  bankDetails?: BankAccountDetails;
+  intlBank?: Partial<IntlBankInfo>;
+  localBank?: Partial<LocalBankInfo>;
+  onSuccessfulDonation?: (submission: DonationSubmission) => void;
+  activeAnimalName?: string;
+  donationType?: 'international' | 'local';
+  onDonationTypeChange?: (type: 'international' | 'local') => void;
+}
+
+const INTL_BANK_DEFAULT: IntlBankInfo = {
   bankName: 'Bank Alfalah',
   accountTitle: 'Sharoon Tariq Daim',
   iban: 'PK96 ALFH 0106 0010 1002 6840',
@@ -43,7 +49,7 @@ const INTL_BANK: IntlBankInfo = {
   currencies: 'USD, EUR, GBP, CAD'
 };
 
-const LOCAL_BANK: LocalBankInfo = {
+const LOCAL_BANK_DEFAULT: LocalBankInfo = {
   bankName: 'Easy Paisa',
   accountTitle: 'Sharoon Tariq',
   accountNumber: '0311 7432755'
@@ -56,18 +62,44 @@ const MOTIVATIONAL_WORDS = [
 ];
 
 export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
-  activeAnimalName = 'rescued animals'
+  bankDetails,
+  intlBank: propIntlBank,
+  localBank: propLocalBank,
+  activeAnimalName = 'rescued animals',
+  donationType: controlledType,
+  onDonationTypeChange
 }) => {
-  const [donationType, setDonationType] = useState<'international' | 'local'>('international');
+  const intlBank: IntlBankInfo = {
+    ...INTL_BANK_DEFAULT,
+    ...(bankDetails?.intlBank || {}),
+    ...(propIntlBank || {})
+  };
+  const localBank: LocalBankInfo = {
+    ...LOCAL_BANK_DEFAULT,
+    ...(bankDetails?.localBank || {}),
+    ...(propLocalBank || {})
+  };
+  const motivationalWords = MOTIVATIONAL_WORDS;
+
+  const [internalDonationType, setInternalDonationType] = useState<'international' | 'local'>('international');
+  const donationType = controlledType !== undefined ? controlledType : internalDonationType;
+
+  const handleTypeSelect = (type: 'international' | 'local') => {
+    setInternalDonationType(type);
+    if (onDonationTypeChange) {
+      onDonationTypeChange(type);
+    }
+  };
+
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [wordIndex, setWordIndex] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setWordIndex((prev) => (prev + 1) % MOTIVATIONAL_WORDS.length);
+      setWordIndex((prev) => (prev + 1) % motivationalWords.length);
     }, 2400);
     return () => clearInterval(timer);
-  }, []);
+  }, [motivationalWords.length]);
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -78,7 +110,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
   return (
     <div 
       id="donation-appeal-box" 
-      className="w-full bg-white rounded-[20px] xs:rounded-[22px] sm:rounded-[30px] border border-gray-100 shadow-[0_10px_25px_rgba(0,0,0,0.06)] p-3.5 sm:p-6 transition-all flex flex-col justify-between"
+      className="w-full bg-white rounded-[20px] xs:rounded-[22px] sm:rounded-[30px] border border-gray-100 shadow-[0_10px_25px_rgba(0,0,0,0.06)] p-3.5 sm:p-6 flex flex-col justify-between"
     >
       <div>
         {/* Header */}
@@ -121,7 +153,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
         <div className="p-1 bg-gray-100 rounded-xl grid grid-cols-2 gap-1.5 mb-3 text-xs sm:text-sm font-bold">
           <button
             type="button"
-            onClick={() => setDonationType('international')}
+            onClick={() => handleTypeSelect('international')}
             className={`py-2 px-2.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer touch-manipulation ${
               donationType === 'international'
                 ? 'bg-white text-[#043E49] shadow-xs font-black'
@@ -134,7 +166,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
 
           <button
             type="button"
-            onClick={() => setDonationType('local')}
+            onClick={() => handleTypeSelect('local')}
             className={`py-2 px-2.5 sm:px-3 rounded-lg transition-all flex items-center justify-center gap-1 sm:gap-1.5 cursor-pointer touch-manipulation ${
               donationType === 'local'
                 ? 'bg-white text-[#043E49] shadow-xs font-black'
@@ -174,14 +206,14 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
               <div className="flex justify-between items-center text-[11px] sm:text-[11.5px]">
                 <span className="text-gray-500">Bank Name:</span>
                 <span className="font-semibold text-gray-800 text-right">
-                  {INTL_BANK.bankName}
+                  {intlBank.bankName}
                 </span>
               </div>
 
               <div className="flex justify-between items-center text-[11px] sm:text-[11.5px]">
                 <span className="text-gray-500">Beneficiary:</span>
                 <span className="font-semibold text-gray-800 text-right">
-                  {INTL_BANK.accountTitle}
+                  {intlBank.accountTitle}
                 </span>
               </div>
 
@@ -189,12 +221,12 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                 <div className="min-w-0">
                   <span className="text-[8.5px] sm:text-[9px] text-gray-400 font-bold block">IBAN / ACCOUNT #</span>
                   <span className="font-mono font-bold text-gray-900 tracking-tight text-[11px] xs:text-xs sm:text-sm break-all select-all">
-                    {INTL_BANK.iban}
+                    {intlBank.iban}
                   </span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => copyToClipboard(INTL_BANK.iban, 'iban')}
+                  onClick={() => copyToClipboard(intlBank.iban, 'iban')}
                   className="p-1.5 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer shrink-0 touch-manipulation"
                   title="Copy IBAN"
                 >
@@ -211,12 +243,12 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                   <div className="min-w-0">
                     <span className="text-[8px] sm:text-[8.5px] text-gray-400 font-bold block">SWIFT / BIC</span>
                     <span className="font-mono font-bold text-gray-900 text-[11px] sm:text-xs truncate block">
-                      {INTL_BANK.swiftBic}
+                      {intlBank.swiftBic}
                     </span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(INTL_BANK.swiftBic, 'swift')}
+                    onClick={() => copyToClipboard(intlBank.swiftBic, 'swift')}
                     className="p-1.5 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer shrink-0 touch-manipulation"
                     title="Copy SWIFT code"
                   >
@@ -232,12 +264,12 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                   <div className="min-w-0">
                     <span className="text-[8px] sm:text-[8.5px] text-gray-400 font-bold block">BRANCH CODE</span>
                     <span className="font-mono font-bold text-gray-900 text-[11px] sm:text-xs truncate block">
-                      {INTL_BANK.routingNumber}
+                      {intlBank.routingNumber}
                     </span>
                   </div>
                   <button
                     type="button"
-                    onClick={() => copyToClipboard(INTL_BANK.routingNumber, 'routing')}
+                    onClick={() => copyToClipboard(intlBank.routingNumber, 'routing')}
                     className="p-1.5 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer shrink-0 touch-manipulation"
                     title="Copy Branch Code"
                   >
@@ -251,7 +283,7 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
               </div>
 
               <div className="flex justify-between items-center text-[10px] sm:text-[10.5px] text-gray-500 pt-1 border-t border-gray-200/50">
-                <span>Accepted: <strong className="text-gray-700">{INTL_BANK.currencies}</strong></span>
+                <span>Accepted: <strong className="text-gray-700">{intlBank.currencies}</strong></span>
               </div>
             </div>
           ) : (
@@ -260,14 +292,14 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
               <div className="flex justify-between items-center text-[11px] sm:text-[11.5px]">
                 <span className="text-gray-500">Bank Name:</span>
                 <span className="font-semibold text-gray-800 text-right">
-                  {LOCAL_BANK.bankName}
+                  {localBank.bankName}
                 </span>
               </div>
 
               <div className="flex justify-between items-center text-[11px] sm:text-[11.5px]">
                 <span className="text-gray-500">Account Title:</span>
                 <span className="font-semibold text-gray-800 text-right">
-                  {LOCAL_BANK.accountTitle}
+                  {localBank.accountTitle}
                 </span>
               </div>
 
@@ -275,12 +307,12 @@ export const DonationAppealBox: React.FC<DonationAppealBoxProps> = ({
                 <div className="min-w-0">
                   <span className="text-[8.5px] sm:text-[9px] text-gray-400 font-bold block">ACCOUNT / MOBILE #</span>
                   <span className="font-mono font-bold text-gray-900 tracking-tight text-[11px] xs:text-xs sm:text-sm break-all select-all">
-                    {LOCAL_BANK.accountNumber}
+                    {localBank.accountNumber}
                   </span>
                 </div>
                 <button
                   type="button"
-                  onClick={() => copyToClipboard(LOCAL_BANK.accountNumber, 'account')}
+                  onClick={() => copyToClipboard(localBank.accountNumber, 'account')}
                   className="p-1.5 rounded-md text-gray-500 hover:text-[#043E49] hover:bg-gray-100 transition-colors cursor-pointer shrink-0 touch-manipulation"
                   title="Copy Account Number"
                 >

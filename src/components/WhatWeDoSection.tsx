@@ -2,27 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Play, Pause, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { WHAT_WE_DO_ITEMS } from '../data/whatWeDoData';
+import { WhatWeDoItem, WhatWeDoHeaderContent } from '../siteContent';
 
 interface WhatWeDoSectionProps {
+  headerContent?: WhatWeDoHeaderContent;
+  items?: WhatWeDoItem[];
   onExploreMore?: () => void;
 }
 
 const AUTOPLAY_INTERVAL_MS = 6500;
 
-export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
+export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = ({ 
+  headerContent,
+  items 
+}) => {
+  const activeItems = (items && items.length > 0) ? items : WHAT_WE_DO_ITEMS;
+  const badgeText = headerContent?.badge || 'Our Core Pillars';
+  const titleText = headerContent?.title || 'What We Do';
+  const descriptionText = headerContent?.description || 'From frontline medical rescue to expansive lifelong sanctuaries, discover how our dedicated programs heal, protect, and advocate for every vulnerable animal.';
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const touchStartXRef = React.useRef<number | null>(null);
 
-  const currentItem = WHAT_WE_DO_ITEMS[currentIndex];
+  const safeIndex = currentIndex >= activeItems.length ? 0 : currentIndex;
+  const currentItem = activeItems[safeIndex] || activeItems[0];
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % WHAT_WE_DO_ITEMS.length);
+    setCurrentIndex((prev) => (prev + 1) % activeItems.length);
   };
 
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + WHAT_WE_DO_ITEMS.length) % WHAT_WE_DO_ITEMS.length);
+    setCurrentIndex((prev) => (prev - 1 + activeItems.length) % activeItems.length);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -56,22 +68,22 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#043E49]/10 text-[#043E49] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider mb-1.5">
               <Sparkles className="w-3 h-3 text-[#043E49]" />
-              Our Core Pillars
+              {badgeText}
             </div>
             <h2 className="text-xl sm:text-3xl lg:text-3xl font-black text-[#1A1A1A] tracking-tight">
-              What We Do
+              {titleText}
             </h2>
             <p className="text-xs sm:text-sm text-gray-600 mt-1 max-w-2xl leading-relaxed">
-              From frontline medical rescue to expansive lifelong sanctuaries, discover how our dedicated programs heal, protect, and advocate for every vulnerable animal.
+              {descriptionText}
             </p>
           </div>
 
           {/* Navigation Controls in Header */}
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <div className="text-[11px] font-mono font-bold text-gray-500 bg-white border border-gray-200 px-2.5 py-1 rounded-full shadow-2xs">
-              <span className="text-[#043E49] font-black">0{currentIndex + 1}</span>
+              <span className="text-[#043E49] font-black">0{safeIndex + 1}</span>
               <span className="text-gray-300 mx-1">/</span>
-              <span>0{WHAT_WE_DO_ITEMS.length}</span>
+              <span>0{activeItems.length}</span>
             </div>
 
             <button
@@ -171,11 +183,11 @@ export const WhatWeDoSection: React.FC<WhatWeDoSectionProps> = () => {
 
               {/* Slide Indicator Bars */}
               <div className="pt-1 flex items-center gap-1.5">
-                {WHAT_WE_DO_ITEMS.map((item, idx) => {
-                  const isCurrent = idx === currentIndex;
+                {activeItems.map((item, idx) => {
+                  const isCurrent = idx === safeIndex;
                   return (
                     <button
-                      key={item.id}
+                      key={item.id || idx}
                       onClick={() => setCurrentIndex(idx)}
                       aria-label={`Jump to ${item.title}`}
                       className="p-1 -m-1 cursor-pointer flex items-center touch-manipulation"

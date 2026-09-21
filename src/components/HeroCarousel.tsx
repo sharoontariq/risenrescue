@@ -10,15 +10,23 @@ import { CAROUSEL_SLIDES } from '../data/carouselData';
 import { CarouselSlide } from '../types';
 
 interface HeroCarouselProps {
+  slides?: CarouselSlide[];
   onSelectSlide?: (slide: CarouselSlide) => void;
+  onSlideChange?: (slide: CarouselSlide) => void;
+  onDonateNow?: () => void;
   onQuickDonateFocus?: () => void;
+  className?: string;
 }
 
 const SLIDE_DURATION_MS = 6000;
 
 export const HeroCarousel: React.FC<HeroCarouselProps> = ({ 
-  onSelectSlide 
+  slides,
+  onSelectSlide,
+  onSlideChange,
+  className
 }) => {
+  const activeSlides = (slides && slides.length > 0) ? slides : CAROUSEL_SLIDES;
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -27,19 +35,21 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
   const lastTimeRef = useRef<number>(Date.now());
   const requestRef = useRef<number | null>(null);
 
-  const currentSlide = CAROUSEL_SLIDES[currentIndex];
+  // Guard if currentIndex is out of bounds after slide edits
+  const safeIndex = currentIndex >= activeSlides.length ? 0 : currentIndex;
+  const currentSlide = activeSlides[safeIndex] || activeSlides[0];
 
   const goToNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % CAROUSEL_SLIDES.length);
+    setCurrentIndex((prev) => (prev + 1) % activeSlides.length);
     setProgress(0);
     lastTimeRef.current = Date.now();
-  }, []);
+  }, [activeSlides.length]);
 
   const goToPrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + CAROUSEL_SLIDES.length) % CAROUSEL_SLIDES.length);
+    setCurrentIndex((prev) => (prev - 1 + activeSlides.length) % activeSlides.length);
     setProgress(0);
     lastTimeRef.current = Date.now();
-  }, []);
+  }, [activeSlides.length]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartXRef.current = e.touches[0].clientX;
@@ -86,7 +96,10 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
     if (onSelectSlide) {
       onSelectSlide(currentSlide);
     }
-  }, [currentSlide, onSelectSlide]);
+    if (onSlideChange) {
+      onSlideChange(currentSlide);
+    }
+  }, [currentSlide, onSelectSlide, onSlideChange]);
 
   // Animation frame loop for progress bar
   useEffect(() => {
@@ -120,7 +133,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
 
   return (
     <div 
-      className="relative w-full h-full min-h-[280px] xs:min-h-[330px] sm:min-h-[400px] lg:min-h-[450px] flex items-center justify-center overflow-hidden rounded-[20px] xs:rounded-[24px] sm:rounded-[32px] bg-[#E5E7EB] shadow-md sm:shadow-lg border border-white sm:border-2 group select-none"
+      className={`relative w-full h-full min-h-[440px] xs:min-h-[460px] sm:min-h-[500px] flex items-center justify-center overflow-hidden rounded-[20px] xs:rounded-[22px] sm:rounded-[30px] bg-[#E5E7EB] shadow-[0_10px_25px_rgba(0,0,0,0.06)] border border-gray-100 group select-none ${className || ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onTouchStart={handleTouchStart}
@@ -170,11 +183,11 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
         <div className="flex items-center gap-1.5 sm:gap-2 bg-black/50 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/25 shadow-lg">
           {/* Geometric Slide Indicators */}
           <div className="flex items-center gap-1">
-            {CAROUSEL_SLIDES.map((slide, idx) => {
-              const isCurrent = idx === currentIndex;
+            {activeSlides.map((slide, idx) => {
+              const isCurrent = idx === safeIndex;
               return (
                 <button
-                  key={slide.id}
+                  key={slide.id || idx}
                   onClick={() => goToIndex(idx)}
                   aria-label={`Slide ${idx + 1}`}
                   className="p-1 -m-1 cursor-pointer flex items-center touch-manipulation"

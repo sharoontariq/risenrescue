@@ -10,26 +10,41 @@ import {
   Music2
 } from 'lucide-react';
 import { RiseAndRescueLogo } from './RiseAndRescueLogo';
+import { FooterContent } from '../siteContent';
 
 interface FooterProps {
+  content?: FooterContent;
   onNavigateHome: () => void;
   onNavigateAbout?: () => void;
   onNavigateGoals?: () => void;
   onNavigateGallery: () => void;
-  onNavigateAdmin: () => void;
   onDonateClick: () => void;
   onWhatWeDoClick: () => void;
   onStoriesClick: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
+  content,
   onNavigateHome,
   onNavigateAbout,
   onNavigateGoals,
   onNavigateGallery,
-  onNavigateAdmin,
   onDonateClick
 }) => {
+  const brandName = content?.brandName || 'Rise & Rescue Animal Welfare';
+  const description = content?.description || 'Dedicated to stray animal care, compassionate veterinary rescue, and lifelong rehabilitation.';
+  const rescuePhone = content?.rescuePhone || '+92-320-7482952';
+  const rescuePhoneLabel = content?.rescuePhoneLabel || '24/7 Rescue Line';
+  const email = content?.email || 'rise.rescuefsd@gmail.com';
+  const addressLine1 = content?.addressLine1 || '224 RB Wazirkhan Wali, St #4';
+  const addressLine2 = content?.addressLine2 || 'Gosiyabad, Faisalabad, 38000';
+  const mapLink = content?.mapLink || 'https://maps.google.com/?q=224+RB+Wazirkhan+Wali+Faisalabad';
+  const instagramUrl = content?.instagramUrl || 'https://instagram.com';
+  const facebookUrl = content?.facebookUrl || 'https://facebook.com';
+  const youtubeUrl = content?.youtubeUrl || 'https://youtube.com';
+  const tiktokUrl = content?.tiktokUrl || 'https://tiktok.com/@riseandrescue';
+  const copyrightText = content?.copyrightText || `© ${new Date().getFullYear()} Rise & Rescue Animal Welfare. All rights reserved.`;
+
   return (
     <footer className="w-full bg-[#111827] text-gray-400 border-t border-gray-800 text-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -41,11 +56,11 @@ export const Footer: React.FC<FooterProps> = ({
                 <RiseAndRescueLogo className="w-full h-full" inverted={true} />
               </div>
               <span className="font-bold text-sm text-white tracking-tight">
-                Rise & Rescue Animal Welfare
+                {brandName}
               </span>
             </div>
             <p className="text-[11px] text-gray-400 leading-relaxed">
-              Dedicated to stray animal care, compassionate veterinary rescue, and lifelong rehabilitation.
+              {description}
             </p>
           </div>
 
@@ -58,17 +73,17 @@ export const Footer: React.FC<FooterProps> = ({
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-[#4fc3d0] flex-shrink-0" />
                 <div>
-                  <a href="tel:+923207482952" className="text-gray-200 hover:text-white font-medium transition-colors">
-                    +92-320-7482952
+                  <a href={`tel:${rescuePhone.replace(/[^0-9+]/g, '')}`} className="text-gray-200 hover:text-white font-medium transition-colors">
+                    {rescuePhone}
                   </a>
-                  <span className="text-[9px] text-gray-500 block">24/7 Rescue Line</span>
+                  <span className="text-[9px] text-gray-500 block">{rescuePhoneLabel}</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 pt-0.5">
                 <Mail className="w-3.5 h-3.5 text-[#4fc3d0] flex-shrink-0" />
-                <a href="mailto:rise.rescuefsd@gmail.com" className="text-gray-200 hover:text-white font-medium transition-colors">
-                  rise.rescuefsd@gmail.com
+                <a href={`mailto:${email}`} className="text-gray-200 hover:text-white font-medium transition-colors">
+                  {email}
                 </a>
               </div>
             </div>
@@ -82,16 +97,18 @@ export const Footer: React.FC<FooterProps> = ({
             <div className="flex items-start gap-2 text-[11px] text-gray-300">
               <MapPin className="w-3.5 h-3.5 text-[#4fc3d0] flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-gray-200">224 RB Wazirkhan Wali, St #4</p>
-                <p className="text-gray-400 text-[10px] mt-0.5">Gosiyabad, Faisalabad, 38000</p>
-                <a 
-                  href="https://maps.google.com/?q=224+RB+Wazirkhan+Wali+Faisalabad" 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="inline-block text-[10px] text-[#4fc3d0] hover:underline mt-0.5"
-                >
-                  View on Google Maps
-                </a>
+                <p className="font-medium text-gray-200">{addressLine1}</p>
+                <p className="text-gray-400 text-[10px] mt-0.5">{addressLine2}</p>
+                {mapLink && (
+                  <a 
+                    href={mapLink} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="inline-block text-[10px] text-[#4fc3d0] hover:underline mt-0.5"
+                  >
+                    View on Google Maps
+                  </a>
+                )}
               </div>
             </div>
           </div>
@@ -104,7 +121,7 @@ export const Footer: React.FC<FooterProps> = ({
             {/* Social Icons */}
             <div className="flex items-center gap-2">
               <a
-                href="https://instagram.com"
+                href={instagramUrl}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Instagram"
@@ -114,7 +131,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <Instagram className="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110" />
               </a>
               <a
-                href="https://facebook.com"
+                href={facebookUrl}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Facebook"
@@ -124,7 +141,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <Facebook className="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110" />
               </a>
               <a
-                href="https://youtube.com"
+                href={youtubeUrl}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="YouTube"
@@ -134,7 +151,7 @@ export const Footer: React.FC<FooterProps> = ({
                 <Youtube className="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-110" />
               </a>
               <a
-                href="https://tiktok.com/@riseandrescue"
+                href={tiktokUrl}
                 target="_blank"
                 rel="noreferrer"
                 aria-label="TikTok"
@@ -180,13 +197,10 @@ export const Footer: React.FC<FooterProps> = ({
 
         {/* Bottom Minimal Copyright Bar */}
         <div className="mt-6 pt-4 border-t border-gray-800/80 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-[11px] text-gray-500">
-          <p>© {new Date().getFullYear()} Rise & Rescue Animal Welfare.</p>
-          <button
-            onClick={onNavigateAdmin}
-            className="text-gray-500 hover:text-gray-300 transition-colors cursor-pointer text-[10px]"
-          >
-            Admin Panel
-          </button>
+          <p>{copyrightText}</p>
+          <div className="flex items-center gap-1.5 text-gray-500">
+            <span>Rescue, Rehabilitation & Sanctuary Care</span>
+          </div>
         </div>
       </div>
     </footer>

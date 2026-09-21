@@ -7,18 +7,24 @@ import {
   Clock
 } from 'lucide-react';
 import { GalleryItem } from '../types';
+import { GalleryContent } from '../siteContent';
 
 interface GalleryPageProps {
+  content?: GalleryContent;
   galleryItems: GalleryItem[];
   onBackToHome: () => void;
-  onOpenAdmin?: () => void;
 }
 
 export const GalleryPage: React.FC<GalleryPageProps> = ({ 
+  content,
   galleryItems, 
   onBackToHome
 }) => {
   const [activeLightboxItem, setActiveLightboxItem] = useState<GalleryItem | null>(null);
+
+  const pageTitle = content?.pageTitle || 'Gallery';
+  const emptyStateHeading = content?.emptyStateHeading || 'No pictures uploaded yet';
+  const emptyStateDescription = content?.emptyStateDescription || 'Check back soon for photo updates from our animal sanctuary and rescue missions.';
 
   return (
     <div className="w-full bg-[#F8F9FA] min-h-screen pb-14">
@@ -35,7 +41,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
                 <span>Back to Home</span>
               </button>
               <h1 className="text-xl sm:text-2xl font-black text-[#1A1A1A] tracking-tight">
-                Gallery
+                {pageTitle}
               </h1>
             </div>
 
@@ -55,9 +61,9 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
             <div className="w-12 h-12 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3">
               <ImageIcon className="w-6 h-6" />
             </div>
-            <h2 className="text-base sm:text-lg font-black text-[#1A1A1A]">No pictures uploaded yet</h2>
+            <h2 className="text-base sm:text-lg font-black text-[#1A1A1A]">{emptyStateHeading}</h2>
             <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto mt-1.5">
-              The gallery currently only displays pictures uploaded and managed via the Admin Panel.
+              {emptyStateDescription}
             </p>
           </div>
         ) : (

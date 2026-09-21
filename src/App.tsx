@@ -12,17 +12,56 @@ import { FutureGoalsPage } from './components/FutureGoalsPage';
 import { Footer } from './components/Footer';
 import { CAROUSEL_SLIDES } from './data/carouselData';
 import { CarouselSlide, DonationSubmission, GalleryItem } from './types';
-import { Heart, Sparkles, ArrowUp } from 'lucide-react';
+import { 
+  SiteContent, 
+  loadSiteContent, 
+  saveSiteContent, 
+  DEFAULT_SITE_CONTENT 
+} from './siteContent';
+import { ArrowUp } from 'lucide-react';
+
+type PageRoute = 'home' | 'gallery' | 'about' | 'goals' | 'admin';
+
+function resolveRoute(pathname: string): { page: PageRoute; redirect?: string } {
+  const cleanPath = pathname.toLowerCase().replace(/\/+$/, '') || '/';
+
+  if (cleanPath === '/admin' || cleanPath === '/admin/login') {
+    return { page: 'admin' };
+  }
+
+  if (cleanPath === '/gallery') {
+    return { page: 'gallery' };
+  }
+
+  if (cleanPath === '/about') {
+    return { page: 'about' };
+  }
+
+  if (cleanPath === '/goals') {
+    return { page: 'goals' };
+  }
+
+  return { page: 'home' };
+}
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'gallery' | 'admin' | 'about' | 'goals'>('home');
-  const [currentSlide, setCurrentSlide] = useState<CarouselSlide>(CAROUSEL_SLIDES[0]);
-  const [activeTab, setActiveTab] = useState<'carousel' | 'donate'>('carousel');
+  // Central site content loaded from localStorage with default fallbacks
+  const [siteContent, setSiteContent] = useState<SiteContent>(() => loadSiteContent());
+
+  const [currentPage, setCurrentPage] = useState<PageRoute>(() => {
+    const route = resolveRoute(window.location.pathname);
+    return route.page;
+  });
+
+  const [currentSlide, setCurrentSlide] = useState<CarouselSlide>(() => {
+    const initialContent = loadSiteContent();
+    return initialContent.home.heroSlides[0] || CAROUSEL_SLIDES[0];
+  });
   const [completedDonation, setCompletedDonation] = useState<DonationSubmission | null>(null);
   const [selectedAppealTarget, setSelectedAppealTarget] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Gallery items strictly managed through Admin Panel
+  // Gallery items managed through Admin Panel
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(() => {
     try {
       const saved = localStorage.getItem('pawhaven_admin_gallery_photos');
@@ -51,10 +90,31 @@ export default function App() {
     setGalleryItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const handleSaveContent = (newContent: SiteContent) => {
+    setSiteContent(newContent);
+    saveSiteContent(newContent);
+  };
+
+  const handleResetContent = () => {
+    setSiteContent(DEFAULT_SITE_CONTENT);
+    saveSiteContent(DEFAULT_SITE_CONTENT);
+  };
+
   const heroRef = useRef<HTMLElement>(null);
   const donationBoxRef = useRef<HTMLDivElement>(null);
   const whatWeDoRef = useRef<HTMLDivElement>(null);
   const storiesRef = useRef<HTMLDivElement>(null);
+
+  // Browser History & URL route handling
+  useEffect(() => {
+    const handlePopState = () => {
+      const route = resolveRoute(window.location.pathname);
+      setCurrentPage(route.page);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   useEffect(() => {
     const checkScroll = () => {
@@ -69,6 +129,20 @@ export default function App() {
     return () => window.removeEventListener('scroll', checkScroll);
   }, []);
 
+  const navigateTo = (page: PageRoute, urlPath: string) => {
+    if (window.location.pathname !== urlPath) {
+      window.history.pushState(null, '', urlPath);
+    }
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateHome = () => navigateTo('home', '/');
+  const handleNavigateAbout = () => navigateTo('about', '/about');
+  const handleNavigateGoals = () => navigateTo('goals', '/goals');
+  const handleNavigateGallery = () => navigateTo('gallery', '/gallery');
+  const handleNavigateAdmin = () => navigateTo('admin', '/admin');
+
   const handleHeroScroll = () => {
     if (currentPage !== 'home') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -81,39 +155,13 @@ export default function App() {
     }
   };
 
-  const handleNavigateHome = () => {
-    setCurrentPage('home');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleNavigateAbout = () => {
-    setCurrentPage('about');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleNavigateGoals = () => {
-    setCurrentPage('goals');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleNavigateGallery = () => {
-    setCurrentPage('gallery');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleNavigateAdmin = () => {
-    setCurrentPage('admin');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const handleQuickDonateFocus = (targetName?: string) => {
     if (currentPage !== 'home') {
-      setCurrentPage('home');
+      handleNavigateHome();
     }
     if (targetName) {
       setSelectedAppealTarget(targetName);
     }
-    setActiveTab('donate');
     setTimeout(() => {
       if (donationBoxRef.current) {
         donationBoxRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -123,7 +171,7 @@ export default function App() {
 
   const handleWhatWeDoScroll = () => {
     if (currentPage !== 'home') {
-      setCurrentPage('home');
+      handleNavigateHome();
       setTimeout(() => {
         if (whatWeDoRef.current) {
           whatWeDoRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -136,7 +184,7 @@ export default function App() {
 
   const handleStoriesScroll = () => {
     if (currentPage !== 'home') {
-      setCurrentPage('home');
+      handleNavigateHome();
       setTimeout(() => {
         if (storiesRef.current) {
           storiesRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -147,40 +195,49 @@ export default function App() {
     }
   };
 
+  // Direct Admin Panel View at /admin without login gate
+  if (currentPage === 'admin') {
+    return (
+      <AdminPanel
+        content={siteContent}
+        onSaveContent={handleSaveContent}
+        onResetContent={handleResetContent}
+        galleryItems={galleryItems}
+        onAddPhoto={handleAddPhoto}
+        onDeletePhoto={handleDeletePhoto}
+        onViewGallery={handleNavigateGallery}
+        onBackToHome={handleNavigateHome}
+      />
+    );
+  }
+
+  // Public Frontend Views: Absolutely no reference to /admin or Admin Panel in UI
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-[#1A1A1A] flex flex-col selection:bg-[#043E49] selection:text-white relative">
       {/* Top Sanctuary Navigation Bar */}
       <Header 
+        content={siteContent.header}
         currentPage={currentPage}
         onHomeClick={handleNavigateHome}
         onAboutClick={handleNavigateAbout}
         onGoalsClick={handleNavigateGoals}
         onGalleryClick={handleNavigateGallery}
-        onAdminClick={handleNavigateAdmin}
         onDonateClick={() => handleQuickDonateFocus()} 
         onWhatWeDoClick={handleWhatWeDoScroll}
         onStoriesClick={handleStoriesScroll}
       />
 
-      {currentPage === 'admin' ? (
-        /* Admin Panel - Upload and control gallery pictures */
-        <AdminPanel
-          galleryItems={galleryItems}
-          onAddPhoto={handleAddPhoto}
-          onDeletePhoto={handleDeletePhoto}
-          onViewGallery={handleNavigateGallery}
-          onBackToHome={handleNavigateHome}
-        />
-      ) : currentPage === 'gallery' ? (
-        /* Gallery Page - Only shows uploaded pictures controlled from Admin Panel */
+      {currentPage === 'gallery' ? (
+        /* Gallery Page */
         <GalleryPage 
+          content={siteContent.gallery}
           galleryItems={galleryItems}
           onBackToHome={handleNavigateHome}
-          onOpenAdmin={handleNavigateAdmin}
         />
       ) : currentPage === 'about' ? (
         /* About Us Page */
         <AboutUsPage
+          content={siteContent.about}
           onBackToHome={handleNavigateHome}
           onNavigateGallery={handleNavigateGallery}
           onNavigateGoals={handleNavigateGoals}
@@ -189,6 +246,8 @@ export default function App() {
       ) : currentPage === 'goals' ? (
         /* Future Goals Page */
         <FutureGoalsPage
+          content={siteContent.goals}
+          goals={siteContent.goals.goals}
           onBackToHome={handleNavigateHome}
           onNavigateAbout={handleNavigateAbout}
           onNavigateGallery={handleNavigateGallery}
@@ -198,81 +257,56 @@ export default function App() {
         /* Home Page Sections */
         <>
           {/* Main Hero Stage */}
-          <main ref={heroRef} className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3.5 sm:py-6 flex flex-col justify-center">
-            {/* Mobile View Toggle (Visible only on mobile/tablet) */}
-            <div className="lg:hidden flex items-center justify-center p-1 bg-gray-100 border border-gray-200 rounded-xl mb-3 text-xs font-bold shadow-2xs">
-              <button
-                onClick={() => setActiveTab('carousel')}
-                className={`flex-1 min-h-[42px] py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer touch-manipulation ${
-                  activeTab === 'carousel'
-                    ? 'bg-[#043E49] text-white shadow-xs'
-                    : 'text-gray-600 hover:text-[#1A1A1A] active:bg-gray-200/60'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span className="truncate">Animal Stories</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('donate')}
-                className={`flex-1 min-h-[42px] py-2 px-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer touch-manipulation ${
-                  activeTab === 'donate'
-                    ? 'bg-[#043E49] text-white shadow-xs'
-                    : 'text-gray-600 hover:text-[#1A1A1A] active:bg-gray-200/60'
-                }`}
-              >
-                <Heart className="w-3.5 h-3.5 fill-current" />
-                <span className="truncate">Donation Appeal</span>
-              </button>
-            </div>
+          <section ref={heroRef} className="w-full">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+              {/* Main Content Area */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch w-full">
+                <div className="w-full h-full flex flex-col">
+                  <HeroCarousel 
+                    slides={siteContent.home.heroSlides}
+                    onSlideChange={(slide) => setCurrentSlide(slide)}
+                    onDonateNow={() => handleQuickDonateFocus(currentSlide?.animalName)}
+                  />
+                </div>
 
-            {/* Hero Grid Container: Left = Carousel, Right = Appeal Box */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
-              {/* Carousel Column (Occupies 7 columns on desktop) */}
-              <div 
-                className={`lg:col-span-7 xl:col-span-7 flex flex-col ${
-                  activeTab === 'carousel' ? 'block' : 'hidden lg:flex'
-                }`}
-              >
-                <HeroCarousel
-                  onSelectSlide={(slide) => setCurrentSlide(slide)}
-                  onQuickDonateFocus={handleQuickDonateFocus}
-                />
-              </div>
-
-              {/* Donation Appeal Box Column (Occupies 5 columns on desktop) */}
-              <div 
-                ref={donationBoxRef}
-                className={`lg:col-span-5 xl:col-span-5 flex flex-col justify-center ${
-                  activeTab === 'donate' ? 'block' : 'hidden lg:flex'
-                }`}
-              >
-                <DonationAppealBox
-                  activeAnimalName={selectedAppealTarget || currentSlide.animalName}
-                  onSuccessfulDonation={(submission) => setCompletedDonation(submission)}
-                />
+                {/* Right Appeal / Bank Deposit Box */}
+                <div ref={donationBoxRef} className="w-full h-full flex flex-col">
+                  <DonationAppealBox 
+                    intlBank={siteContent.home.bankDetails.intlBank}
+                    localBank={siteContent.home.bankDetails.localBank}
+                    activeAnimalName={selectedAppealTarget || currentSlide?.animalName}
+                  />
+                </div>
               </div>
             </div>
-          </main>
+          </section>
 
-          {/* What We Do Section Under the Hero Page */}
+          {/* What We Do Mission Pillars Section */}
           <div ref={whatWeDoRef}>
-            <WhatWeDoSection onExploreMore={handleQuickDonateFocus} />
+            <WhatWeDoSection 
+              headerContent={siteContent.home.whatWeDoHeader}
+              items={siteContent.home.whatWeDoItems}
+            />
           </div>
 
           {/* Stories Section Under What We Do */}
           <div ref={storiesRef}>
-            <StoriesSection onSupportAnimal={(name) => handleQuickDonateFocus(name)} />
+            <StoriesSection 
+              headerContent={siteContent.home.storiesHeader}
+              stories={siteContent.home.storiesItems}
+              onSupportAnimal={(name) => handleQuickDonateFocus(name)} 
+            />
           </div>
         </>
       )}
 
-      {/* Comprehensive Sanctuary Footer with Social Media, Email, Phone & Address Sections */}
+      {/* Comprehensive Sanctuary Footer */}
       <Footer
+        content={siteContent.footer}
         onNavigateHome={handleNavigateHome}
         onNavigateAbout={handleNavigateAbout}
         onNavigateGoals={handleNavigateGoals}
         onNavigateGallery={handleNavigateGallery}
-        onNavigateAdmin={handleNavigateAdmin}
         onDonateClick={() => handleQuickDonateFocus()}
         onWhatWeDoClick={handleWhatWeDoScroll}
         onStoriesClick={handleStoriesScroll}
