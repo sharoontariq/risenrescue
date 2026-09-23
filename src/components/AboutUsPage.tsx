@@ -158,9 +158,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
               <p className="text-sm sm:text-[15px] text-gray-600 leading-relaxed">
                 {storyParagraph1}
               </p>
-              <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                {storyParagraph2}
-              </p>
             </div>
 
             <div className="lg:col-span-5">

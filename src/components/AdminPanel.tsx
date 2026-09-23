@@ -78,6 +78,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [heroUrlInput, setHeroUrlInput] = useState('');
   const [heroActionStatus, setHeroActionStatus] = useState<string | null>(null);
 
+  // About Us hero image upload state
+  const aboutHeroFileInputRef = useRef<HTMLInputElement>(null);
+  const [isAboutHeroDragging, setIsAboutHeroDragging] = useState(false);
+
   // Update local formData if external content updates
   React.useEffect(() => {
     setFormData(JSON.parse(JSON.stringify(content)));
@@ -407,6 +411,30 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         storiesItems: updated
       }
     }));
+  };
+
+  // About Us hero image upload
+  const handleAboutHeroImageUpload = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, WEBP, etc.)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      if (dataUrl) {
+        setFormData(prev => ({
+          ...prev,
+          about: {
+            ...prev.about,
+            heroImageUrl: dataUrl
+          }
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   // Gallery photo file handling
@@ -1599,22 +1627,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Page Title</label>
                   <input
                     type="text"
                     value={formData.about.pageTitle}
                     onChange={(e) => setFormData({ ...formData, about: { ...formData.about, pageTitle: e.target.value } })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Non-Profit Badge</label>
-                  <input
-                    type="text"
-                    value={formData.about.nonProfitBadge}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, nonProfitBadge: e.target.value } })}
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs"
                   />
                 </div>
@@ -1627,7 +1646,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs"
                   />
                 </div>
-                <div className="sm:col-span-3">
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-bold text-gray-700 mb-1">Story Main Heading</label>
                   <input
                     type="text"
@@ -1636,8 +1655,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs font-bold"
                   />
                 </div>
-                <div className="sm:col-span-3">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Story Paragraph 1</label>
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Story Paragraph</label>
                   <textarea
                     rows={2}
                     value={formData.about.heroParagraph1}
@@ -1645,57 +1664,95 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs"
                   />
                 </div>
-                <div className="sm:col-span-3">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Story Paragraph 2</label>
-                  <textarea
-                    rows={2}
-                    value={formData.about.heroParagraph2}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, heroParagraph2: e.target.value } })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Hero Image URL</label>
-                  <input
-                    type="text"
-                    value={formData.about.heroImageUrl}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, heroImageUrl: e.target.value } })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Hero Image Caption</label>
-                  <input
-                    type="text"
-                    value={formData.about.heroImageCaption}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, heroImageCaption: e.target.value } })}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs"
-                  />
-                </div>
-              </div>
+                {/* Local Image Upload for About Hero */}
+                <div className="sm:col-span-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-gray-700">
+                      Story Hero Image
+                    </label>
+                    {formData.about.heroImageUrl && (
+                      <span className="text-[10px] font-semibold text-[#043E49] bg-[#043E49]/10 px-2 py-0.5 rounded-full border border-[#043E49]/20">
+                        Image Loaded
+                      </span>
+                    )}
+                  </div>
 
-              {/* Trust Metric Badges */}
-              <div className="pt-2 border-t border-gray-100">
-                <label className="block text-xs font-bold text-gray-700 mb-2">Trust Metrics Pills</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  <input
-                    type="text"
-                    value={formData.about.trustBadge1}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, trustBadge1: e.target.value } })}
-                    className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs"
-                  />
-                  <input
-                    type="text"
-                    value={formData.about.trustBadge2}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, trustBadge2: e.target.value } })}
-                    className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs"
-                  />
-                  <input
-                    type="text"
-                    value={formData.about.trustBadge3}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, trustBadge3: e.target.value } })}
-                    className="px-2.5 py-1.5 rounded-lg border border-gray-200 text-xs"
-                  />
+                  <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+                    {/* Thumbnail Preview */}
+                    {formData.about.heroImageUrl && (
+                      <div className="relative w-full sm:w-36 h-24 rounded-xl overflow-hidden border border-gray-200 bg-gray-100 shrink-0 group">
+                        <img
+                          src={formData.about.heroImageUrl}
+                          alt="Story Hero"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-1">
+                          <button
+                            type="button"
+                            onClick={() => aboutHeroFileInputRef.current?.click()}
+                            className="px-2.5 py-1 rounded bg-white text-[#043E49] text-[10px] font-bold shadow hover:bg-gray-100 flex items-center gap-1 cursor-pointer"
+                          >
+                            <Upload className="w-3 h-3" />
+                            <span>Replace</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Local File Dropzone / Uploader */}
+                    <div
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsAboutHeroDragging(false);
+                        if (e.dataTransfer.files) handleAboutHeroImageUpload(e.dataTransfer.files);
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsAboutHeroDragging(true);
+                      }}
+                      onDragLeave={(e) => {
+                        e.preventDefault();
+                        setIsAboutHeroDragging(false);
+                      }}
+                      onClick={() => aboutHeroFileInputRef.current?.click()}
+                      className={`flex-1 flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                        isAboutHeroDragging
+                          ? 'border-[#043E49] bg-[#043E49]/10'
+                          : 'border-gray-200 hover:border-[#043E49]/60 hover:bg-gray-50/80 bg-gray-50/40'
+                      }`}
+                    >
+                      <input
+                        type="file"
+                        ref={aboutHeroFileInputRef}
+                        accept="image/*"
+                        onChange={(e) => {
+                          handleAboutHeroImageUpload(e.target.files);
+                          if (e.target) e.target.value = '';
+                        }}
+                        className="hidden"
+                      />
+                      <div className="w-8 h-8 rounded-full bg-[#043E49]/10 text-[#043E49] flex items-center justify-center mb-1">
+                        <Upload className="w-4 h-4" />
+                      </div>
+                      <p className="text-xs font-bold text-gray-800 text-center">
+                        {formData.about.heroImageUrl ? 'Click or drag to replace with a local image' : 'Click or drag a local photo here to upload'}
+                      </p>
+                      <p className="text-[10px] text-gray-400 mt-0.5 text-center">
+                        Supports PNG, JPG, JPEG, WEBP (instant local upload)
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Optional URL input fallback */}
+                  <div className="pt-1">
+                    <input
+                      type="text"
+                      placeholder="Or paste an image web URL..."
+                      value={formData.about.heroImageUrl}
+                      onChange={(e) => setFormData({ ...formData, about: { ...formData.about, heroImageUrl: e.target.value } })}
+                      className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-600 focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49]"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
