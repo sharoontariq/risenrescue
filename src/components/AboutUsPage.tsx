@@ -219,11 +219,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   ))}
                 </div>
               </div>
-
-              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-500">
-                <span>{missionMandateLabel}</span>
-                <span className="text-[#043E49] font-bold">{missionMandateValue}</span>
-              </div>
             </div>
 
             {/* Our Vision Card */}
@@ -252,11 +247,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-500">
-                <span>{visionHorizonLabel}</span>
-                <span className="text-[#043E49] font-bold">{visionHorizonValue}</span>
               </div>
             </div>
           </div>

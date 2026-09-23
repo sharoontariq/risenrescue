@@ -178,13 +178,36 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
         <ChevronRight className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
       </button>
 
-      {/* Bottom Minimal Floating Navigation Pill (Progress bar & play/pause) */}
-      <div className="absolute bottom-2.5 sm:bottom-4 z-20 flex items-center justify-center pointer-events-auto max-w-[95%]">
-        <div className="flex items-center gap-1.5 sm:gap-2 bg-black/50 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/25 shadow-lg">
-          {/* Progress Mini Bar */}
-          <div className="w-7 sm:w-10 h-1 bg-white/20 rounded-full overflow-hidden">
+      {/* Bottom Floating Navigation Capsule matching reference design (compact & refined) */}
+      <div className="absolute bottom-2.5 sm:bottom-3.5 z-20 flex items-center justify-center pointer-events-auto max-w-[95%]">
+        <div className="flex items-center gap-2 sm:gap-2.5 bg-[#3F3F3F]/85 sm:bg-[#4A4A4A]/85 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/20 shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
+          {/* Slide Indicator Dots / Active Capsule */}
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            {activeSlides.map((_, idx) => {
+              const isActive = idx === safeIndex;
+              return (
+                <button
+                  key={idx}
+                  onClick={() => goToIndex(idx)}
+                  className={`transition-all duration-300 rounded-full cursor-pointer touch-manipulation ${
+                    isActive
+                      ? 'w-4.5 sm:w-5 h-1.5 sm:h-1.5 bg-white shadow-2xs'
+                      : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70'
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                  aria-current={isActive ? 'true' : undefined}
+                />
+              );
+            })}
+          </div>
+
+          {/* Subtle Vertical Divider */}
+          <div className="w-[1px] h-2.5 sm:h-3 bg-white/30 rounded-full mx-0.5" />
+
+          {/* Progress Capsule Bar */}
+          <div className="w-8 sm:w-9.5 h-1.5 bg-white/25 rounded-full overflow-hidden">
             <div
-              className="h-full bg-white/90 rounded-full transition-all duration-100 ease-linear"
+              className="h-full bg-white rounded-full transition-all duration-100 ease-linear"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -192,10 +215,14 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
           {/* Play/Pause Toggle Button */}
           <button
             onClick={() => setIsPlaying((prev) => !prev)}
-            className="p-1 rounded-full text-white/80 hover:text-white transition-colors cursor-pointer touch-manipulation"
+            className="p-0.5 text-white/90 hover:text-white transition-colors cursor-pointer touch-manipulation flex items-center justify-center ml-0.5"
             aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
           >
-            {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+            {isPlaying ? (
+              <Pause className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white stroke-[2.5]" />
+            ) : (
+              <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white fill-white ml-0.5" />
+            )}
           </button>
         </div>
       </div>
