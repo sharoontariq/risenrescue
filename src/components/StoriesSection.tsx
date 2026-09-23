@@ -5,14 +5,25 @@ import { STORIES_DATA } from '../data/storiesData';
 import { StoryCardItem } from '../types';
 
 interface StoriesSectionProps {
+  headerContent?: {
+    badge: string;
+    title: string;
+    description: string;
+  };
   stories?: StoryCardItem[];
   onSupportAnimal?: (animalName: string) => void;
+  onSelectStory?: (storyId: string) => void;
 }
 
 const ITEMS_PER_VIEW = 2;
 const AUTOPLAY_INTERVAL_MS = 7000;
 
-export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories, onSupportAnimal }) => {
+export const StoriesSection: React.FC<StoriesSectionProps> = ({ 
+  headerContent, 
+  stories, 
+  onSupportAnimal,
+  onSelectStory 
+}) => {
   const activeStories = (stories && stories.length > 0) ? stories : STORIES_DATA;
   const [currentPage, setCurrentPage] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -158,7 +169,26 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories, onSuppo
               {currentStories.map((story) => (
                 <div
                   key={story.id}
-                  className="group bg-white rounded-[18px] sm:rounded-[24px] border border-gray-100 shadow-[0_8px_25px_rgba(0,0,0,0.05)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 overflow-hidden flex flex-col"
+                  onClick={() => {
+                    if (onSelectStory) {
+                      onSelectStory(story.id);
+                    } else {
+                      setSelectedStory(story);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (onSelectStory) {
+                        onSelectStory(story.id);
+                      } else {
+                        setSelectedStory(story);
+                      }
+                    }
+                  }}
+                  className="group bg-white rounded-[18px] sm:rounded-[24px] border border-gray-100 shadow-[0_8px_25px_rgba(0,0,0,0.05)] hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col cursor-pointer"
                 >
                   {/* Picture Container */}
                   <div className="relative w-full aspect-[16/10] overflow-hidden bg-gray-100">
@@ -166,7 +196,7 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories, onSuppo
                       src={story.imageUrl}
                       alt={story.imageAlt}
                       referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover object-center group-hover:scale-104 transition-transform duration-500"
+                      className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                     />
 
                     {/* Animal Name Tag */}
@@ -190,24 +220,10 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories, onSuppo
                       </p>
                     </div>
 
-                    {/* Footer Action of the Card */}
-                    <div className="pt-2.5 sm:pt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs sm:text-[13px]">
-                      <span className="font-semibold text-gray-400 text-[10.5px] sm:text-[11px]">
-                        {story.tag || 'Sanctuary Care'}
-                      </span>
-                      <button
-                        onClick={() => {
-                          if (onSupportAnimal) {
-                            onSupportAnimal(story.name);
-                          } else {
-                            setSelectedStory(story);
-                          }
-                        }}
-                        className="inline-flex items-center gap-1 font-bold text-[#043E49] hover:text-[#032f38] transition-colors cursor-pointer group/btn text-xs sm:text-[13px] touch-manipulation"
-                      >
-                        <span>Support Similar Rescues</span>
-                        <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
-                      </button>
+                    {/* Footer Action of the Card: Read Story on the left and arrow on the right */}
+                    <div className="pt-2.5 sm:pt-3 border-t border-gray-100 flex items-center justify-between text-xs sm:text-[13px] font-bold text-[#043E49]">
+                      <span className="group-hover:underline">Read Story</span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
                 </div>

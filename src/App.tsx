@@ -9,6 +9,7 @@ import { GalleryPage } from './components/GalleryPage';
 import { AdminPanel } from './components/AdminPanel';
 import { AboutUsPage } from './components/AboutUsPage';
 import { FutureGoalsPage } from './components/FutureGoalsPage';
+import { StoryPage } from './components/StoryPage';
 import { Footer } from './components/Footer';
 import { CAROUSEL_SLIDES } from './data/carouselData';
 import { CarouselSlide, DonationSubmission, GalleryItem } from './types';
@@ -20,9 +21,9 @@ import {
 } from './siteContent';
 import { ArrowUp } from 'lucide-react';
 
-type PageRoute = 'home' | 'gallery' | 'about' | 'goals' | 'admin';
+type PageRoute = 'home' | 'gallery' | 'about' | 'goals' | 'admin' | 'story';
 
-function resolveRoute(pathname: string): { page: PageRoute; redirect?: string } {
+function resolveRoute(pathname: string): { page: PageRoute; storyId?: string; redirect?: string } {
   const cleanPath = pathname.toLowerCase().replace(/\/+$/, '') || '/';
 
   if (cleanPath === '/admin' || cleanPath === '/admin/login') {
@@ -41,6 +42,11 @@ function resolveRoute(pathname: string): { page: PageRoute; redirect?: string } 
     return { page: 'goals' };
   }
 
+  if (cleanPath.startsWith('/story/')) {
+    const storyId = cleanPath.replace('/story/', '');
+    return { page: 'story', storyId };
+  }
+
   return { page: 'home' };
 }
 
@@ -48,10 +54,9 @@ export default function App() {
   // Central site content loaded from localStorage with default fallbacks
   const [siteContent, setSiteContent] = useState<SiteContent>(() => loadSiteContent());
 
-  const [currentPage, setCurrentPage] = useState<PageRoute>(() => {
-    const route = resolveRoute(window.location.pathname);
-    return route.page;
-  });
+  const initialRoute = resolveRoute(window.location.pathname);
+  const [currentPage, setCurrentPage] = useState<PageRoute>(initialRoute.page);
+  const [selectedStoryId, setSelectedStoryId] = useState<string | null>(initialRoute.storyId || null);
 
   const [currentSlide, setCurrentSlide] = useState<CarouselSlide>(() => {
     const initialContent = loadSiteContent();
@@ -110,6 +115,9 @@ export default function App() {
     const handlePopState = () => {
       const route = resolveRoute(window.location.pathname);
       setCurrentPage(route.page);
+      if (route.storyId) {
+        setSelectedStoryId(route.storyId);
+      }
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -142,6 +150,19 @@ export default function App() {
   const handleNavigateGoals = () => navigateTo('goals', '/goals');
   const handleNavigateGallery = () => navigateTo('gallery', '/gallery');
   const handleNavigateAdmin = () => navigateTo('admin', '/admin');
+
+  const handleSelectStory = (storyId: string) => {
+    setSelectedStoryId(storyId);
+    navigateTo('story', `/story/${storyId}`);
+  };
+
+  const currentStoryItem = siteContent.home.storiesItems.find(
+    (s) => s.id === selectedStoryId || s.id.toLowerCase() === selectedStoryId?.toLowerCase()
+  ) || siteContent.home.storiesItems[0];
+
+  const remainingStories = siteContent.home.storiesItems.filter(
+    (s) => s.id !== currentStoryItem?.id
+  );
 
   const handleHeroScroll = () => {
     if (currentPage !== 'home') {
@@ -253,6 +274,14 @@ export default function App() {
           onNavigateGallery={handleNavigateGallery}
           onDonateClick={() => handleQuickDonateFocus()}
         />
+      ) : currentPage === 'story' && currentStoryItem ? (
+        /* Dedicated Story Page: Only Image, Name, Title, Description, and remaining stories at the bottom */
+        <StoryPage
+          story={currentStoryItem}
+          remainingStories={remainingStories}
+          onSelectStory={handleSelectStory}
+          onBackToHome={handleNavigateHome}
+        />
       ) : (
         /* Home Page Sections */
         <>
@@ -295,6 +324,7 @@ export default function App() {
               headerContent={siteContent.home.storiesHeader}
               stories={siteContent.home.storiesItems}
               onSupportAnimal={(name) => handleQuickDonateFocus(name)} 
+              onSelectStory={handleSelectStory}
             />
           </div>
         </>
