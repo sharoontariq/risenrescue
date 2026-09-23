@@ -1512,7 +1512,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                         {/* Story Details in compact layout */}
                         <div className="flex-1 w-full space-y-2">
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
                               <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Animal Name</label>
                               <input
@@ -1538,20 +1538,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                   setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
                                 }}
                                 placeholder="Story Heading"
-                                className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs focus:ring-1 focus:ring-[#043E49] focus:border-[#043E49]"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Status Badge</label>
-                              <input
-                                type="text"
-                                value={story.status || ''}
-                                onChange={(e) => {
-                                  const updated = [...formData.home.storiesItems];
-                                  updated[idx].status = e.target.value;
-                                  setFormData({ ...formData, home: { ...formData.home, storiesItems: updated } });
-                                }}
-                                placeholder="e.g. In Sanctuary"
                                 className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs focus:ring-1 focus:ring-[#043E49] focus:border-[#043E49]"
                               />
                             </div>

@@ -786,17 +786,6 @@ export const HomeEditor: React.FC<HomeEditorProps> = ({ content, onChange }) => 
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-gray-700">Status Badge</label>
-                    <input
-                      type="text"
-                      value={story.status || ''}
-                      onChange={(e) => handleUpdateStoryItem(idx, { status: e.target.value })}
-                      placeholder="e.g. Adopted & Thriving"
-                      className="w-full px-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg text-gray-900"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
                     <label className="text-[11px] font-bold text-gray-700">Category Tag</label>
                     <input
                       type="text"

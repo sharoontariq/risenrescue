@@ -1,9 +1,6 @@
 import React from 'react';
 import { 
   Heart, 
-  ShieldCheck, 
-  Award, 
-  MapPin, 
   ArrowLeft, 
   Users, 
   Sparkles, 
@@ -134,18 +131,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
             </div>
 
             <div className="flex items-center gap-2.5 flex-wrap">
-              {onNavigateGoals && (
-                <button
-                  onClick={onNavigateGoals}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 px-3 py-1.5 rounded-full transition-colors cursor-pointer"
-                >
-                  <span>Future Goals</span>
-                </button>
-              )}
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#043E49]/10 text-[#043E49] border border-[#043E49]/20 px-2.5 py-1 rounded-full">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#043E49]" />
-                {nonProfitBadge}
-              </span>
               <button
                 onClick={onDonateClick}
                 className="inline-flex items-center gap-1.5 text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white px-3.5 py-1.5 rounded-full transition-colors cursor-pointer shadow-xs"
@@ -176,22 +161,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
               <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
                 {storyParagraph2}
               </p>
-
-              {/* Trust Metric Pills */}
-              <div className="pt-1 flex flex-wrap items-center gap-2.5 text-[11px] font-bold text-gray-700">
-                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-2.5 py-1.5 rounded-lg">
-                  <Award className="w-3.5 h-3.5 text-amber-500" />
-                  <span>{trustBadge1}</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-2.5 py-1.5 rounded-lg">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#043E49]" />
-                  <span>{trustBadge2}</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 px-2.5 py-1.5 rounded-lg">
-                  <MapPin className="w-3.5 h-3.5 text-blue-500" />
-                  <span>{trustBadge3}</span>
-                </div>
-              </div>
             </div>
 
             <div className="lg:col-span-5">
@@ -202,15 +171,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                <div className="absolute bottom-3 left-3 right-3 text-white">
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-[#043E49] px-2 py-0.5 rounded-full inline-block mb-1">
-                    {storyImageBadge}
-                  </span>
-                  <p className="text-[11px] font-semibold text-gray-200">
-                    {storyImageCaption}
-                  </p>
-                </div>
               </div>
             </div>
           </div>

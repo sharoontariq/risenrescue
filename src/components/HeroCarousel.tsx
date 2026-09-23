@@ -178,34 +178,9 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({
         <ChevronRight className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
       </button>
 
-      {/* Bottom Minimal Floating Navigation Pill (Geometric indicators & play/pause, zero text) */}
+      {/* Bottom Minimal Floating Navigation Pill (Progress bar & play/pause) */}
       <div className="absolute bottom-2.5 sm:bottom-4 z-20 flex items-center justify-center pointer-events-auto max-w-[95%]">
         <div className="flex items-center gap-1.5 sm:gap-2 bg-black/50 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border border-white/25 shadow-lg">
-          {/* Geometric Slide Indicators */}
-          <div className="flex items-center gap-1">
-            {activeSlides.map((slide, idx) => {
-              const isCurrent = idx === safeIndex;
-              return (
-                <button
-                  key={slide.id || idx}
-                  onClick={() => goToIndex(idx)}
-                  aria-label={`Slide ${idx + 1}`}
-                  className="p-1 -m-1 cursor-pointer flex items-center touch-manipulation"
-                >
-                  <div
-                    className={`h-1 sm:h-1.5 rounded-full transition-all duration-300 ${
-                      isCurrent
-                        ? 'w-4 sm:w-6 bg-white shadow-sm'
-                        : 'w-1.5 bg-white/45 hover:bg-white/75'
-                    }`}
-                  />
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="w-px h-2.5 bg-white/25 mx-0.5" />
-
           {/* Progress Mini Bar */}
           <div className="w-7 sm:w-10 h-1 bg-white/20 rounded-full overflow-hidden">
             <div

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Sparkles, CheckCircle2, ArrowRight, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
+import { Heart, Sparkles, ArrowRight, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { STORIES_DATA } from '../data/storiesData';
 import { StoryCardItem } from '../types';
@@ -168,14 +168,6 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ stories, onSuppo
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover object-center group-hover:scale-104 transition-transform duration-500"
                     />
-                    
-                    {/* Status Badge Over Image */}
-                    {story.status && (
-                      <div className="absolute top-2.5 sm:top-3 left-2.5 sm:left-3 inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-black/60 text-white backdrop-blur-md border border-white/20 shadow-sm">
-                        <CheckCircle2 className="w-3 h-3 text-[#4fc3d0]" />
-                        <span>{story.status}</span>
-                      </div>
-                    )}
 
                     {/* Animal Name Tag */}
                     <div className="absolute bottom-2.5 sm:bottom-3 right-2.5 sm:right-3 inline-flex items-center gap-1 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-black bg-white/95 text-[#1A1A1A] backdrop-blur-md shadow-xs">
