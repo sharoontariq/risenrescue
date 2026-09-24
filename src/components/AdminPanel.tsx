@@ -26,12 +26,15 @@ import {
   Globe,
   HelpCircle,
   Eye,
-  Check
+  Check,
+  Loader2,
+  X
 } from 'lucide-react';
 import { GalleryItem, CarouselSlide, WhatWeDoItem, StoryCardItem } from '../types';
 import { 
   SiteContent, 
   AboutTeamMember, 
+  AboutMissionVisionCard,
   FutureGoalItem, 
   DEFAULT_SITE_CONTENT 
 } from '../siteContent';
@@ -81,6 +84,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   // About Us hero image upload state
   const aboutHeroFileInputRef = useRef<HTMLInputElement>(null);
   const [isAboutHeroDragging, setIsAboutHeroDragging] = useState(false);
+  const [deletingMemberIndex, setDeletingMemberIndex] = useState<number | null>(null);
+  const [deletingPillarCardIndex, setDeletingPillarCardIndex] = useState<number | null>(null);
+  const [deletingHeroSlideIndex, setDeletingHeroSlideIndex] = useState<number | null>(null);
+
+  // Saving state & Simple Notification Modal state
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSaveAlertModal, setShowSaveAlertModal] = useState(false);
 
   // Update local formData if external content updates
   React.useEffect(() => {
@@ -88,9 +98,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   }, [content]);
 
   const handleSave = () => {
+    setIsSaving(true);
     onSaveContent(formData);
-    setSaveStatus('Changes saved and published across the website!');
-    setTimeout(() => setSaveStatus(null), 3500);
+    setSaveStatus('All changes saved!');
+    setShowSaveAlertModal(true);
+
+    setTimeout(() => {
+      setIsSaving(false);
+      setSaveStatus(null);
+    }, 1500);
   };
 
   const handleResetToDefaults = () => {
@@ -186,6 +202,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const handleDeleteHeroSlide = (index: number) => {
     if (formData.home.heroSlides.length <= 1) {
       alert('You need to keep at least one image in the hero carousel.');
+      setDeletingHeroSlideIndex(null);
       return;
     }
     setFormData(prev => ({
@@ -195,6 +212,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         heroSlides: prev.home.heroSlides.filter((_, i) => i !== index)
       }
     }));
+    setDeletingHeroSlideIndex(null);
     setHeroActionStatus('Image removed from carousel.');
     setTimeout(() => setHeroActionStatus(null), 3000);
   };
@@ -437,6 +455,177 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     reader.readAsDataURL(file);
   };
 
+  // Upload local image for Mission / Vision / Value Card from PC
+  const handlePillarCardImageUpload = (index: number, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      if (dataUrl) {
+        setFormData(prev => {
+          const currentCards = prev.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || [];
+          const updated = [...currentCards];
+          if (updated[index]) {
+            updated[index] = {
+              ...updated[index],
+              imageUrl: dataUrl
+            };
+          }
+          return {
+            ...prev,
+            about: {
+              ...prev.about,
+              missionVisionCards: updated
+            }
+          };
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddPillarCard = () => {
+    const newCard: AboutMissionVisionCard = {
+      id: `pillar-${Date.now()}`,
+      badge: 'Core Value',
+      heading: 'New Value / Mission Card',
+      description: 'Describe the guiding vision, ethical mission, or sanctuary commitment for this card.',
+      imageUrl: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
+      bullets: []
+    };
+    setFormData(prev => {
+      const currentCards = prev.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || [];
+      return {
+        ...prev,
+        about: {
+          ...prev.about,
+          missionVisionCards: [...currentCards, newCard]
+        }
+      };
+    });
+    setSaveStatus('Added new Mission / Vision card.');
+    setTimeout(() => setSaveStatus(null), 3000);
+  };
+
+  const handleDeletePillarCard = (index: number) => {
+    setFormData(prev => {
+      const currentCards = prev.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || [];
+      const updated = currentCards.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        about: {
+          ...prev.about,
+          missionVisionCards: updated
+        }
+      };
+    });
+    setDeletingPillarCardIndex(null);
+    setSaveStatus('Removed card from Mission & Vision section.');
+    setTimeout(() => setSaveStatus(null), 3500);
+  };
+
+  const handleMovePillarCard = (fromIndex: number, toIndex: number) => {
+    setFormData(prev => {
+      const currentCards = prev.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || [];
+      if (toIndex < 0 || toIndex >= currentCards.length) return prev;
+      const updated = [...currentCards];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return {
+        ...prev,
+        about: {
+          ...prev.about,
+          missionVisionCards: updated
+        }
+      };
+    });
+  };
+
+  // Upload local image for Team Member from PC
+  const handleTeamMemberImageUpload = (index: number, files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file (PNG, JPG, WEBP, etc.)');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target?.result as string;
+      if (dataUrl) {
+        setFormData(prev => {
+          const updated = [...prev.about.teamMembers];
+          if (updated[index]) {
+            updated[index] = {
+              ...updated[index],
+              imageUrl: dataUrl
+            };
+          }
+          return {
+            ...prev,
+            about: {
+              ...prev.about,
+              teamMembers: updated
+            }
+          };
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAddTeamMember = () => {
+    const newMember: AboutTeamMember = {
+      id: `team-${Date.now()}`,
+      name: 'New Team Member',
+      role: 'Wildlife Specialist',
+      bio: 'Devoted to emergency veterinary trauma care and compassionate animal rehabilitation.',
+      imageUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80',
+      badge: 'Veterinary Staff'
+    };
+    setFormData(prev => ({
+      ...prev,
+      about: {
+        ...prev.about,
+        teamMembers: [...prev.about.teamMembers, newMember]
+      }
+    }));
+    setSaveStatus('Added new team member card.');
+    setTimeout(() => setSaveStatus(null), 3000);
+  };
+
+  const handleDeleteTeamMember = (index: number) => {
+    const memberName = formData.about.teamMembers[index]?.name || 'Member';
+    setFormData(prev => ({
+      ...prev,
+      about: {
+        ...prev.about,
+        teamMembers: prev.about.teamMembers.filter((_, i) => i !== index)
+      }
+    }));
+    setDeletingMemberIndex(null);
+    setSaveStatus(`Deleted "${memberName}" from team roster.`);
+    setTimeout(() => setSaveStatus(null), 3500);
+  };
+
+  const handleMoveTeamMember = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= formData.about.teamMembers.length) return;
+    const updated = [...formData.about.teamMembers];
+    const [moved] = updated.splice(fromIndex, 1);
+    updated.splice(toIndex, 0, moved);
+    setFormData(prev => ({
+      ...prev,
+      about: {
+        ...prev.about,
+        teamMembers: updated
+      }
+    }));
+  };
+
   // Gallery photo file handling
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -663,11 +852,36 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           <div className="space-y-6">
             {/* Bank Details Editor */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-5">
-              <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
-                <CreditCard className="w-5 h-5 text-[#043E49]" />
-                <div>
-                  <h2 className="text-base font-black text-[#1A1A1A]">Donation Appeal Box (Bank Details)</h2>
-                  <p className="text-xs text-gray-500">Edit the direct deposit banking information displayed on the home page appeal box.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gray-100 gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#043E49]/10 text-[#043E49] flex items-center justify-center shrink-0">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-black text-[#1A1A1A]">Donation Appeal Box (Bank Details)</h2>
+                    <p className="text-xs text-gray-500">Edit the direct deposit banking information displayed on the home page appeal box.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shadow-2xs disabled:opacity-75"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Publishing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-3.5 h-3.5" />
+                        <span>Save & Publish</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -886,20 +1100,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <div className="flex items-center gap-2 flex-wrap">
                   <button
                     type="button"
-                    onClick={() => heroFileInputRef.current?.click()}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer shadow-2xs"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload Local Images</span>
-                  </button>
-
-                  <button
-                    type="button"
                     onClick={handleSave}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer shadow-2xs"
+                    disabled={isSaving}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors cursor-pointer shadow-2xs disabled:opacity-75"
                   >
-                    <Save className="w-3.5 h-3.5" />
-                    <span>Save & Publish</span>
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Publishing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-3.5 h-3.5" />
+                        <span>Save & Publish</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -1016,16 +1231,48 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           Slide {idx + 1}
                         </span>
 
-                        {/* Quick Delete Overlay Button */}
+                        {/* Delete Overlay Button with Confirmation */}
                         {formData.home.heroSlides.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteHeroSlide(idx)}
-                            className="absolute top-2 right-2 p-1.5 rounded-md bg-black/60 hover:bg-rose-600 text-white backdrop-blur-sm transition-colors cursor-pointer"
-                            title="Delete this slide"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          deletingHeroSlideIndex === idx ? (
+                            <div 
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute top-2 right-2 flex items-center gap-1.5 bg-[#FFF1F2] border border-[#FDA4AF] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full shadow-lg z-20 animate-in fade-in zoom-in-95 duration-150"
+                            >
+                              <span className="text-[11px] font-bold text-[#BE123C] select-none pl-0.5">Delete?</span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteHeroSlide(idx);
+                                }}
+                                className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#E11D48] hover:bg-[#BE123C] text-white transition-colors cursor-pointer shadow-xs"
+                              >
+                                Yes
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeletingHeroSlideIndex(null);
+                                }}
+                                className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#334155] transition-colors cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeletingHeroSlideIndex(idx);
+                              }}
+                              className="absolute top-2 right-2 p-1.5 rounded-md bg-black/60 hover:bg-rose-600 text-white backdrop-blur-sm transition-colors cursor-pointer"
+                              title="Delete this slide"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )
                         )}
                       </div>
 
@@ -1758,204 +2005,587 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             </div>
 
             {/* Mission & Vision Statements */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-2xs space-y-3">
-                <h3 className="text-sm font-black text-[#1A1A1A] flex items-center gap-1.5">
-                  <Target className="w-4 h-4 text-[#043E49]" />
-                  <span>Mission Card</span>
-                </h3>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Heading</label>
-                  <input
-                    type="text"
-                    value={formData.about.missionHeading}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, missionHeading: e.target.value } })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold"
-                  />
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gray-100 gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#043E49]/10 text-[#043E49] flex items-center justify-center shrink-0">
+                    <Target className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base font-black text-[#1A1A1A]">Mission, Vision & Core Purpose Cards</h2>
+                      <span className="px-2 py-0.5 text-xs font-bold bg-[#043E49]/10 text-[#043E49] rounded-full">
+                        {(formData.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || []).length} { (formData.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || []).length === 1 ? 'Card' : 'Cards' }
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Upload card photos directly from your PC and easily add, edit, reorder, or delete cards.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Description</label>
-                  <textarea
-                    rows={3}
-                    value={formData.about.missionDescription}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, missionDescription: e.target.value } })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Mandate Status Tag</label>
-                  <input
-                    type="text"
-                    value={formData.about.missionMandateValue}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, missionMandateValue: e.target.value } })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs"
-                  />
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleAddPillarCard}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Card</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save & Publish</span>
+                  </button>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-2xs space-y-3">
-                <h3 className="text-sm font-black text-[#1A1A1A] flex items-center gap-1.5">
-                  <Eye className="w-4 h-4 text-[#043E49]" />
-                  <span>Vision Card</span>
-                </h3>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Heading</label>
-                  <input
-                    type="text"
-                    value={formData.about.visionHeading}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, visionHeading: e.target.value } })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-bold"
-                  />
+              {(formData.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || []).length === 0 ? (
+                <div className="p-8 border-2 border-dashed border-gray-200 rounded-2xl text-center bg-gray-50/50 space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-[#043E49]/10 text-[#043E49] flex items-center justify-center mx-auto">
+                    <Target className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-gray-800">No Mission or Vision Cards</h3>
+                    <p className="text-xs text-gray-500 mt-0.5 max-w-sm mx-auto">
+                      Create cards to present your rescue organization’s mission, vision, and core purpose with custom images.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddPillarCard}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>+ Add First Card</span>
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Description</label>
-                  <textarea
-                    rows={3}
-                    value={formData.about.visionDescription}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, visionDescription: e.target.value } })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs"
-                  />
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {(formData.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || []).map((card, idx) => (
+                      <div
+                        key={card.id || idx}
+                        className="p-4 rounded-xl border border-gray-200 bg-white hover:border-[#043E49]/40 shadow-2xs transition-all space-y-3.5 flex flex-col justify-between"
+                      >
+                        {/* Top Header of Card */}
+                        <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-5 h-5 rounded-full bg-[#043E49]/10 text-[#043E49] font-black text-[11px] flex items-center justify-center shrink-0">
+                              {idx + 1}
+                            </span>
+                            <span className="text-xs font-black text-gray-900 truncate">
+                              {card.heading || 'Untitled Card'}
+                            </span>
+                            {card.badge && (
+                              <span className="text-[10px] font-bold text-[#043E49] bg-[#043E49]/10 px-2 py-0.5 rounded-full truncate hidden sm:inline-block">
+                                {card.badge}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMovePillarCard(idx, idx - 1)}
+                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none text-gray-600 transition-colors cursor-pointer"
+                              title="Move Up"
+                            >
+                              <ArrowLeft className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === (formData.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || []).length - 1}
+                              onClick={() => handleMovePillarCard(idx, idx + 1)}
+                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none text-gray-600 transition-colors cursor-pointer"
+                              title="Move Down"
+                            >
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                            {deletingPillarCardIndex === idx ? (
+                              <div className="flex items-center gap-1.5 bg-[#FFF1F2] border border-[#FDA4AF] px-2.5 py-0.5 rounded-full ml-0.5 shadow-xs">
+                                <span className="text-[11px] font-bold text-[#BE123C] select-none pl-0.5">Delete?</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeletePillarCard(idx)}
+                                  className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#E11D48] hover:bg-[#BE123C] text-white transition-colors cursor-pointer shadow-xs"
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingPillarCardIndex(null)}
+                                  className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#334155] transition-colors cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setDeletingPillarCardIndex(idx)}
+                                className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer ml-0.5"
+                                title="Delete Card"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 2-Column Body: Local PC Upload & Preview on Left, Inputs on Right */}
+                        <div className="flex flex-col sm:flex-row gap-4 items-start flex-1">
+                          {/* Local Image Uploader & Preview Box */}
+                          <div className="w-full sm:w-36 shrink-0 space-y-2">
+                            <label
+                              htmlFor={`pillar-card-file-${idx}`}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                if (e.dataTransfer.files) {
+                                  handlePillarCardImageUpload(idx, e.dataTransfer.files);
+                                }
+                              }}
+                              className="group relative block aspect-[16/10] sm:aspect-[4/5] w-full rounded-xl overflow-hidden border-2 border-dashed border-gray-300 hover:border-[#043E49] bg-gray-50 cursor-pointer transition-all shadow-2xs"
+                              title="Click or drop a photo from your PC"
+                            >
+                              {card.imageUrl ? (
+                                <img
+                                  src={card.imageUrl}
+                                  alt={card.heading}
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center text-gray-400">
+                                  <ImageIcon className="w-7 h-7 mb-1 text-gray-300" />
+                                  <span className="text-[10px] font-bold">No Photo</span>
+                                </div>
+                              )}
+
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-white text-center">
+                                <Upload className="w-5 h-5 mb-1 text-white" />
+                                <span className="text-[11px] font-bold">Change Photo</span>
+                                <span className="text-[9px] text-white/80">From PC</span>
+                              </div>
+                            </label>
+
+                            <input
+                              id={`pillar-card-file-${idx}`}
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                handlePillarCardImageUpload(idx, e.target.files);
+                                if (e.target) e.target.value = '';
+                              }}
+                              className="hidden"
+                            />
+
+                            <label
+                              htmlFor={`pillar-card-file-${idx}`}
+                              className="w-full py-1.5 px-2 rounded-lg text-[11px] font-bold bg-[#043E49]/10 hover:bg-[#043E49]/20 text-[#043E49] border border-[#043E49]/20 flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                            >
+                              <Upload className="w-3 h-3 shrink-0" />
+                              <span>Upload from PC</span>
+                            </label>
+                          </div>
+
+                          {/* Card Form Fields */}
+                          <div className="flex-1 w-full space-y-2.5">
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                                Card Heading / Title
+                              </label>
+                              <input
+                                type="text"
+                                value={card.heading}
+                                placeholder="e.g. Our Mission"
+                                onChange={(e) => {
+                                  const currentCards = formData.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || [];
+                                  const updated = [...currentCards];
+                                  updated[idx] = { ...updated[idx], heading: e.target.value };
+                                  setFormData({
+                                    ...formData,
+                                    about: {
+                                      ...formData.about,
+                                      missionVisionCards: updated,
+                                      ...(idx === 0 ? { missionHeading: e.target.value } : {}),
+                                      ...(idx === 1 ? { visionHeading: e.target.value } : {})
+                                    }
+                                  });
+                                }}
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49] text-xs font-semibold text-gray-900 transition-all"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                                Badge / Category Tag
+                              </label>
+                              <input
+                                type="text"
+                                value={card.badge || ''}
+                                placeholder="e.g. Action Today"
+                                onChange={(e) => {
+                                  const currentCards = formData.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || [];
+                                  const updated = [...currentCards];
+                                  updated[idx] = { ...updated[idx], badge: e.target.value };
+                                  setFormData({
+                                    ...formData,
+                                    about: {
+                                      ...formData.about,
+                                      missionVisionCards: updated,
+                                      ...(idx === 0 ? { missionBadge: e.target.value } : {}),
+                                      ...(idx === 1 ? { visionBadge: e.target.value } : {})
+                                    }
+                                  });
+                                }}
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49] text-xs text-gray-800 transition-all"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                                Description
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={card.description}
+                                placeholder="Describe the mission, vision, or ethical purpose..."
+                                onChange={(e) => {
+                                  const currentCards = formData.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || [];
+                                  const updated = [...currentCards];
+                                  updated[idx] = { ...updated[idx], description: e.target.value };
+                                  setFormData({
+                                    ...formData,
+                                    about: {
+                                      ...formData.about,
+                                      missionVisionCards: updated,
+                                      ...(idx === 0 ? { missionDescription: e.target.value } : {}),
+                                      ...(idx === 1 ? { visionDescription: e.target.value } : {})
+                                    }
+                                  });
+                                }}
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49] text-xs text-gray-700 leading-relaxed transition-all resize-y"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                                Key Bullet Highlights (Optional, one per line)
+                              </label>
+                              <textarea
+                                rows={2}
+                                value={(card.bullets || []).join('\n')}
+                                placeholder="Add key points or achievements, one per line..."
+                                onChange={(e) => {
+                                  const lines = e.target.value.split('\n');
+                                  const currentCards = formData.about.missionVisionCards || DEFAULT_SITE_CONTENT.about.missionVisionCards || [];
+                                  const updated = [...currentCards];
+                                  updated[idx] = { ...updated[idx], bullets: lines };
+                                  setFormData({
+                                    ...formData,
+                                    about: {
+                                      ...formData.about,
+                                      missionVisionCards: updated,
+                                      ...(idx === 0 ? { missionBullets: lines.filter(l => l.trim().length > 0) } : {}),
+                                      ...(idx === 1 ? { visionBullets: lines.filter(l => l.trim().length > 0) } : {})
+                                    }
+                                  });
+                                }}
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49] text-xs text-gray-700 leading-relaxed transition-all resize-y"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={handleAddPillarCard}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border-2 border-dashed border-[#043E49]/30 text-[#043E49] hover:bg-[#043E49]/5 hover:border-[#043E49] transition-all cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+ Add Another Card</span>
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Horizon Status Tag</label>
-                  <input
-                    type="text"
-                    value={formData.about.visionHorizonValue}
-                    onChange={(e) => setFormData({ ...formData, about: { ...formData.about, visionHorizonValue: e.target.value } })}
-                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs"
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Team Members */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                <div>
-                  <h2 className="text-base font-black text-[#1A1A1A]">Team Members ({formData.about.teamMembers.length})</h2>
-                  <p className="text-xs text-gray-500">Edit surgeons, veterinarians, and directors shown on About Us.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-gray-100 gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#043E49]/10 text-[#043E49] flex items-center justify-center shrink-0">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base font-black text-[#1A1A1A]">Team Members & Veterinary Staff</h2>
+                      <span className="px-2 py-0.5 text-xs font-bold bg-[#043E49]/10 text-[#043E49] rounded-full">
+                        {formData.about.teamMembers.length} {formData.about.teamMembers.length === 1 ? 'Member' : 'Members'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Upload member photos directly from your PC and manage their sanctuary roles and bios.
+                    </p>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newMember: AboutTeamMember = {
-                      id: `team-${Date.now()}`,
-                      name: 'New Team Member',
-                      role: 'Wildlife Specialist',
-                      bio: 'Devoted to emergency veterinary trauma care and compassionate rehabilitation.',
-                      imageUrl: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80',
-                      badge: 'Veterinary Staff'
-                    };
-                    setFormData({
-                      ...formData,
-                      about: {
-                        ...formData.about,
-                        teamMembers: [...formData.about.teamMembers, newMember]
-                      }
-                    });
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Member</span>
-                </button>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleAddTeamMember}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Add Member</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save & Publish</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                {formData.about.teamMembers.map((member, idx) => (
-                  <div key={member.id || idx} className="p-3.5 rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-black text-gray-800">{member.name}</span>
-                      {formData.about.teamMembers.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm(`Delete ${member.name}?`)) {
-                              setFormData({
-                                ...formData,
-                                about: {
-                                  ...formData.about,
-                                  teamMembers: formData.about.teamMembers.filter((_, i) => i !== idx)
-                                }
-                              });
-                            }
-                          }}
-                          className="text-rose-600 hover:text-rose-800 text-xs font-bold cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Name</label>
-                        <input
-                          type="text"
-                          value={member.name}
-                          onChange={(e) => {
-                            const updated = [...formData.about.teamMembers];
-                            updated[idx].name = e.target.value;
-                            setFormData({ ...formData, about: { ...formData.about, teamMembers: updated } });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Role</label>
-                        <input
-                          type="text"
-                          value={member.role}
-                          onChange={(e) => {
-                            const updated = [...formData.about.teamMembers];
-                            updated[idx].role = e.target.value;
-                            setFormData({ ...formData, about: { ...formData.about, teamMembers: updated } });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Badge</label>
-                        <input
-                          type="text"
-                          value={member.badge}
-                          onChange={(e) => {
-                            const updated = [...formData.about.teamMembers];
-                            updated[idx].badge = e.target.value;
-                            setFormData({ ...formData, about: { ...formData.about, teamMembers: updated } });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Image URL</label>
-                        <input
-                          type="text"
-                          value={member.imageUrl}
-                          onChange={(e) => {
-                            const updated = [...formData.about.teamMembers];
-                            updated[idx].imageUrl = e.target.value;
-                            setFormData({ ...formData, about: { ...formData.about, teamMembers: updated } });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Bio</label>
-                        <textarea
-                          rows={2}
-                          value={member.bio}
-                          onChange={(e) => {
-                            const updated = [...formData.about.teamMembers];
-                            updated[idx].bio = e.target.value;
-                            setFormData({ ...formData, about: { ...formData.about, teamMembers: updated } });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                        />
-                      </div>
-                    </div>
+              {formData.about.teamMembers.length === 0 ? (
+                <div className="p-8 border-2 border-dashed border-gray-200 rounded-2xl text-center bg-gray-50/50 space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-[#043E49]/10 text-[#043E49] flex items-center justify-center mx-auto">
+                    <Users className="w-6 h-6" />
                   </div>
-                ))}
-              </div>
+                  <div>
+                    <h3 className="text-sm font-black text-gray-800">No Team Members Added</h3>
+                    <p className="text-xs text-gray-500 mt-0.5 max-w-sm mx-auto">
+                      Add surgeons, veterinarians, caretakers, and field rescue staff with local photo uploads.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddTeamMember}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer shadow-2xs"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>+ Add First Team Member</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {formData.about.teamMembers.map((member, idx) => (
+                      <div 
+                        key={member.id || idx} 
+                        className="p-4 rounded-xl border border-gray-200 bg-white hover:border-[#043E49]/40 shadow-2xs transition-all space-y-3.5 flex flex-col justify-between"
+                      >
+                        {/* Top Header of Member Card */}
+                        <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-5 h-5 rounded-full bg-[#043E49]/10 text-[#043E49] font-black text-[11px] flex items-center justify-center shrink-0">
+                              {idx + 1}
+                            </span>
+                            <span className="text-xs font-black text-gray-900 truncate">
+                              {member.name || 'Untitled Member'}
+                            </span>
+                            {member.badge && (
+                              <span className="text-[10px] font-bold text-[#043E49] bg-[#043E49]/10 px-2 py-0.5 rounded-full truncate hidden sm:inline-block">
+                                {member.badge}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveTeamMember(idx, idx - 1)}
+                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none text-gray-600 transition-colors cursor-pointer"
+                              title="Move Up"
+                            >
+                              <ArrowLeft className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === formData.about.teamMembers.length - 1}
+                              onClick={() => handleMoveTeamMember(idx, idx + 1)}
+                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none text-gray-600 transition-colors cursor-pointer"
+                              title="Move Down"
+                            >
+                              <ArrowRight className="w-3 h-3" />
+                            </button>
+                            {deletingMemberIndex === idx ? (
+                              <div className="flex items-center gap-1.5 bg-[#FFF1F2] border border-[#FDA4AF] px-2.5 py-0.5 rounded-full ml-0.5 shadow-xs">
+                                <span className="text-[11px] font-bold text-[#BE123C] select-none pl-0.5">Delete?</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteTeamMember(idx)}
+                                  className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#E11D48] hover:bg-[#BE123C] text-white transition-colors cursor-pointer shadow-xs"
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingMemberIndex(null)}
+                                  className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#334155] transition-colors cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setDeletingMemberIndex(idx)}
+                                className="p-1.5 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer ml-0.5"
+                                title="Delete Member"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 2-Column Body: Local PC Upload & Preview on Left, Inputs on Right */}
+                        <div className="flex flex-col sm:flex-row gap-4 items-start flex-1">
+                          {/* Local Image Uploader & Preview Box */}
+                          <div className="w-full sm:w-36 shrink-0 space-y-2">
+                            <label 
+                              htmlFor={`team-member-file-${idx}`}
+                              className="group relative block aspect-[4/5] w-full rounded-xl overflow-hidden border-2 border-dashed border-gray-300 hover:border-[#043E49] bg-gray-50 cursor-pointer transition-all shadow-2xs"
+                              title="Click to choose a photo from your PC"
+                            >
+                              {member.imageUrl ? (
+                                <img
+                                  src={member.imageUrl}
+                                  alt={member.name}
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=800&q=80';
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center text-gray-400">
+                                  <ImageIcon className="w-7 h-7 mb-1 text-gray-300" />
+                                  <span className="text-[10px] font-bold">No Photo</span>
+                                </div>
+                              )}
+
+                              {/* Hover / Overlay Upload CTA */}
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-white text-center">
+                                <Upload className="w-5 h-5 mb-1 text-white" />
+                                <span className="text-[11px] font-bold">Change Photo</span>
+                                <span className="text-[9px] text-white/80">From PC</span>
+                              </div>
+                            </label>
+
+                            <input
+                              id={`team-member-file-${idx}`}
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) => {
+                                handleTeamMemberImageUpload(idx, e.target.files);
+                                if (e.target) e.target.value = '';
+                              }}
+                              className="hidden"
+                            />
+
+                            <label
+                              htmlFor={`team-member-file-${idx}`}
+                              className="w-full py-1.5 px-2 rounded-lg text-[11px] font-bold bg-[#043E49]/10 hover:bg-[#043E49]/20 text-[#043E49] border border-[#043E49]/20 flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                            >
+                              <Upload className="w-3 h-3 shrink-0" />
+                              <span>Upload from PC</span>
+                            </label>
+                          </div>
+
+                          {/* Member Form Fields */}
+                          <div className="flex-1 w-full space-y-2.5">
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                                Full Name
+                              </label>
+                              <input
+                                type="text"
+                                value={member.name}
+                                placeholder="e.g. Dr. Sarah Jenkins"
+                                onChange={(e) => {
+                                  const updated = [...formData.about.teamMembers];
+                                  updated[idx].name = e.target.value;
+                                  setFormData({ ...formData, about: { ...formData.about, teamMembers: updated } });
+                                }}
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49] text-xs font-semibold text-gray-900 transition-all"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                                Department / Badge Tag
+                              </label>
+                              <input
+                                type="text"
+                                value={member.badge}
+                                placeholder="e.g. Critical Trauma Care"
+                                onChange={(e) => {
+                                  const updated = [...formData.about.teamMembers];
+                                  updated[idx].badge = e.target.value;
+                                  setFormData({ ...formData, about: { ...formData.about, teamMembers: updated } });
+                                }}
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49] text-xs text-gray-800 transition-all"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider mb-1">
+                                Bio & Sanctuary Responsibilities
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={member.bio}
+                                placeholder="Describe experience, dedication, and daily rescue missions..."
+                                onChange={(e) => {
+                                  const updated = [...formData.about.teamMembers];
+                                  updated[idx].bio = e.target.value;
+                                  setFormData({ ...formData, about: { ...formData.about, teamMembers: updated } });
+                                }}
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-gray-50/60 focus:bg-white focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49] text-xs text-gray-700 leading-relaxed transition-all resize-y"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-center pt-2">
+                    <button
+                      type="button"
+                      onClick={handleAddTeamMember}
+                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border-2 border-dashed border-[#043E49]/30 text-[#043E49] hover:bg-[#043E49]/5 hover:border-[#043E49] transition-all cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>+ Add Another Team Member</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2551,6 +3181,43 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         )}
       </main>
+
+      {/* Simple Saved Notification Alert */}
+      {showSaveAlertModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => setShowSaveAlertModal(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-xl border border-gray-100 max-w-xs sm:max-w-sm w-full p-6 text-center space-y-4 animate-in zoom-in-95 duration-150 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Simple Checkmark Icon */}
+            <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shadow-2xs">
+              <Check className="w-6 h-6 stroke-[3]" />
+            </div>
+
+            {/* Simple Message */}
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-gray-900">
+                All Changes Saved!
+              </h3>
+              <p className="text-xs text-gray-500">
+                Your updates have been saved and published to the website.
+              </p>
+            </div>
+
+            {/* Simple OK Button */}
+            <button
+              type="button"
+              onClick={() => setShowSaveAlertModal(false)}
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white transition-colors cursor-pointer shadow-xs"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

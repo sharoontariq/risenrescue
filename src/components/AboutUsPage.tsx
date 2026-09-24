@@ -99,6 +99,25 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
   const visionHorizonLabel = content?.visionHorizonLabel || 'Long-Term Future';
   const visionHorizonValue = content?.visionHorizonValue || 'Harmonious Coexistence';
 
+  const pillarCards = (content?.missionVisionCards && content.missionVisionCards.length > 0)
+    ? content.missionVisionCards
+    : [
+        {
+          id: 'card-mission',
+          badge: missionBadge,
+          heading: missionHeading,
+          description: missionText,
+          bullets: missionPoints
+        },
+        {
+          id: 'card-vision',
+          badge: visionBadge,
+          heading: visionHeading,
+          description: visionText,
+          bullets: visionPoints
+        }
+      ];
+
   const teamBadge = content?.teamBadge || 'Compassionate Caretakers';
   const teamHeading = content?.teamHeading || 'Meet Our Dedicated Team';
   const teamDescription = content?.teamDescription || 'Surgeons, field rescuers, and sanctuary ethologists devoted to animal healing.';
@@ -189,63 +208,68 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {/* Our Mission Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-2xs flex flex-col justify-between hover:shadow-sm transition-shadow relative overflow-hidden">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-[#043E49]/10 text-[#043E49] border border-[#043E49]/20 flex items-center justify-center font-bold">
-                  <Target className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#043E49]">
-                    {missionBadge}
-                  </span>
-                  <h4 className="text-xl font-black text-[#1A1A1A] tracking-tight mt-0.5">
-                    {missionHeading}
-                  </h4>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                  {missionText}
-                </p>
-
-                <div className="pt-1 space-y-2">
-                  {missionPoints.map((point, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-xs text-gray-700">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
-                      <span>{point}</span>
+            {pillarCards.map((card, idx) => (
+              <div 
+                key={card.id || idx}
+                className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-2xs flex flex-col justify-between hover:shadow-sm transition-shadow relative overflow-hidden"
+              >
+                <div className="space-y-3">
+                  {card.imageUrl ? (
+                    <div className="relative aspect-16/9 w-full rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shadow-2xs mb-2">
+                      <img
+                        src={card.imageUrl}
+                        alt={card.heading}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80';
+                        }}
+                      />
+                      {card.badge && (
+                        <span className="absolute top-2.5 left-2.5 text-[10px] font-black uppercase tracking-wider bg-black/60 backdrop-blur-sm text-white px-2.5 py-0.5 rounded-full border border-white/20">
+                          {card.badge}
+                        </span>
+                      )}
                     </div>
-                  ))}
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="w-10 h-10 rounded-xl bg-[#043E49]/10 text-[#043E49] border border-[#043E49]/20 flex items-center justify-center font-bold">
+                        {idx % 2 === 0 ? <Target className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </div>
+                      {card.badge && (
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-2 py-0.5 rounded-full">
+                          {card.badge}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div>
+                    {!card.imageUrl && card.badge && (
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#043E49] block mb-0.5">
+                        {card.badge}
+                      </span>
+                    )}
+                    <h4 className="text-xl font-black text-[#1A1A1A] tracking-tight mt-0.5">
+                      {card.heading}
+                    </h4>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                    {card.description}
+                  </p>
+
+                  {card.bullets && card.bullets.filter(p => p && p.trim().length > 0).length > 0 && (
+                    <div className="pt-1 space-y-2">
+                      {card.bullets.filter(p => p && p.trim().length > 0).map((point, i) => (
+                        <div key={i} className="flex items-start gap-2.5 text-xs text-gray-700">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
+                          <span>{point}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-
-            {/* Our Vision Card */}
-            <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-2xs flex flex-col justify-between hover:shadow-sm transition-shadow relative overflow-hidden">
-              <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-[#043E49]/10 text-[#043E49] border border-[#043E49]/20 flex items-center justify-center font-bold">
-                  <Eye className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#043E49]">
-                    {visionBadge}
-                  </span>
-                  <h4 className="text-xl font-black text-[#1A1A1A] tracking-tight mt-0.5">
-                    {visionHeading}
-                  </h4>
-                </div>
-                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                  {visionText}
-                </p>
-
-                <div className="pt-1 space-y-2">
-                  {visionPoints.map((point, i) => (
-                    <div key={i} className="flex items-start gap-2.5 text-xs text-gray-700">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-[#043E49] shrink-0 mt-0.5" />
-                      <span>{point}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </section>
 

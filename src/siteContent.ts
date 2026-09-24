@@ -79,6 +79,15 @@ export interface AboutTeamMember {
   badge: string;
 }
 
+export interface AboutMissionVisionCard {
+  id: string;
+  badge?: string;
+  heading: string;
+  description: string;
+  imageUrl?: string;
+  bullets?: string[];
+}
+
 export interface AboutUsContent {
   // Breadcrumb bar
   pageTitle: string;
@@ -111,6 +120,8 @@ export interface AboutUsContent {
   visionBullets: string[];
   visionHorizonLabel: string;
   visionHorizonValue: string;
+  // Dynamic Mission & Vision & Pillar Cards
+  missionVisionCards?: AboutMissionVisionCard[];
   // Team Section
   teamBadge: string;
   teamHeading: string;
@@ -268,6 +279,32 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
     ],
     visionHorizonLabel: 'Long-Term Future',
     visionHorizonValue: 'Harmonious Coexistence',
+    missionVisionCards: [
+      {
+        id: 'card-mission',
+        badge: 'Action Today',
+        heading: 'Our Mission',
+        description: 'To provide immediate, round-the-clock emergency medical rescue, compassionate trauma surgery, and lifelong sanctuary for injured, orphaned, and displaced animals—restoring dignity and health through ethical rehabilitation and wild release.',
+        imageUrl: 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?auto=format&fit=crop&w=800&q=80',
+        bullets: [
+          'Rapid 24/7 mobile field dispatch for acute animal emergencies and wildfire evacuation.',
+          'State-of-the-art diagnostic imaging, orthopedic surgery, and specialized thermal nurseries.',
+          'Humane community education and transparent, donor-accountable rescue operations.'
+        ]
+      },
+      {
+        id: 'card-vision',
+        badge: 'The Horizon Tomorrow',
+        heading: 'Our Vision',
+        description: 'A compassionate world where every animal lives free from cruelty, suffering, and exploitation; where protected native habitats thrive, and where human communities actively co-exist with and advocate for vulnerable wildlife.',
+        imageUrl: 'https://images.unsplash.com/photo-1535268647677-300dbf3d78d1?auto=format&fit=crop&w=800&q=80',
+        bullets: [
+          'Zero preventable animal casualties caused by habitat disruption or human-wildlife conflict.',
+          'Expanding protected foothill sanctuary acreage to provide endless safe havens for permanent residents.',
+          'Empowering the next generation with empathy, conservation science, and respect for all living beings.'
+        ]
+      }
+    ],
     teamBadge: 'Compassionate Caretakers',
     teamHeading: 'Meet Our Dedicated Team',
     teamDescription: 'Surgeons, field rescuers, and sanctuary ethologists devoted to animal healing.',
@@ -459,6 +496,9 @@ export function loadSiteContent(): SiteContent {
         about: {
           ...DEFAULT_SITE_CONTENT.about,
           ...(parsed.about || {}),
+          missionVisionCards: (parsed.about && Array.isArray(parsed.about.missionVisionCards))
+            ? parsed.about.missionVisionCards
+            : DEFAULT_SITE_CONTENT.about.missionVisionCards,
         },
         goals: {
           ...DEFAULT_SITE_CONTENT.goals,
