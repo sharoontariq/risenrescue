@@ -245,10 +245,12 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
                     <span className="text-[10px] font-black uppercase tracking-wider text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-2.5 py-0.5 rounded-full">
                       {goal.tag}
                     </span>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
-                      <Calendar className="w-2.5 h-2.5 text-gray-400" />
-                      {goal.targetYear}
-                    </span>
+                    {goal.targetYear && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
+                        <Calendar className="w-2.5 h-2.5 text-gray-400" />
+                        {goal.targetYear}
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="text-lg sm:text-xl lg:text-2xl font-black text-[#1A1A1A] tracking-tight leading-snug">
@@ -272,10 +274,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
 
                 {/* Bottom Action Row */}
                 {onDonateClick && (
-                  <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-[11px] text-gray-400 font-medium hidden sm:inline">
-                      Tax-deductible 501(c)(3) capital initiative
-                    </span>
+                  <div className="pt-3 border-t border-gray-100 flex items-center justify-end">
                     <button
                       onClick={onDonateClick}
                       className="inline-flex items-center gap-1 text-xs font-bold text-[#043E49] hover:text-[#032f38] hover:underline transition-colors cursor-pointer"

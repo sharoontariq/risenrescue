@@ -5,6 +5,8 @@ import {
   Image as ImageIcon, 
   ArrowLeft, 
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
   CheckCircle2, 
   Plus, 
   ExternalLink,
@@ -28,7 +30,12 @@ import {
   Eye,
   Check,
   Loader2,
-  X
+  X,
+  Crop,
+  Move,
+  ZoomIn,
+  ZoomOut,
+  Link as LinkIcon
 } from 'lucide-react';
 import { GalleryItem, CarouselSlide, WhatWeDoItem, StoryCardItem } from '../types';
 import { 
@@ -87,10 +94,259 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [deletingMemberIndex, setDeletingMemberIndex] = useState<number | null>(null);
   const [deletingPillarCardIndex, setDeletingPillarCardIndex] = useState<number | null>(null);
   const [deletingHeroSlideIndex, setDeletingHeroSlideIndex] = useState<number | null>(null);
+  const [deletingGoalIndex, setDeletingGoalIndex] = useState<number | null>(null);
 
   // Saving state & Simple Notification Modal state
   const [isSaving, setIsSaving] = useState(false);
   const [showSaveAlertModal, setShowSaveAlertModal] = useState(false);
+  const [savePhase, setSavePhase] = useState<'saving' | 'success'>('saving');
+
+  // Image Resize & Crop Modal state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+  const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
+  const [cropTargetType, setCropTargetType] = useState<'hero' | 'goal'>('hero');
+  const [cropImageAlt, setCropImageAlt] = useState<string>('Hero carousel slide');
+  const [cropPan, setCropPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [cropZoom, setCropZoom] = useState<number>(1);
+  const [isCropDragging, setIsCropDragging] = useState(false);
+  const [cropDragStart, setCropDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [cropBaseSize, setCropBaseSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const [isSavingCrop, setIsSavingCrop] = useState(false);
+
+  const cropContainerRef = useRef<HTMLDivElement>(null);
+
+  const openCropModal = (imageSrc: string, targetIndex: number | null, altText = 'Hero carousel slide', targetType: 'hero' | 'goal' = 'hero') => {
+    setCropTargetType(targetType);
+    setCropImageSrc(imageSrc);
+    setCropTargetIndex(targetIndex);
+    setCropImageAlt(altText);
+    setCropPan({ x: 0, y: 0 });
+    setCropZoom(1);
+    setCropModalOpen(true);
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const natW = img.naturalWidth || 800;
+      const natH = img.naturalHeight || 600;
+      const containerW = cropContainerRef.current?.clientWidth || 540;
+      const containerH = (containerW * 9) / 16;
+      const scaleW = containerW / natW;
+      const scaleH = containerH / natH;
+      const coverScale = Math.max(scaleW, scaleH);
+      setCropBaseSize({
+        width: natW * coverScale,
+        height: natH * coverScale
+      });
+    };
+    img.src = imageSrc;
+  };
+
+  const handleCropMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsCropDragging(true);
+    setCropDragStart({
+      x: e.clientX - cropPan.x,
+      y: e.clientY - cropPan.y
+    });
+  };
+
+  const handleCropMouseMove = (e: React.MouseEvent) => {
+    if (!isCropDragging) return;
+    e.preventDefault();
+    setCropPan({
+      x: e.clientX - cropDragStart.x,
+      y: e.clientY - cropDragStart.y
+    });
+  };
+
+  const handleCropMouseUp = () => {
+    setIsCropDragging(false);
+  };
+
+  const handleCropTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsCropDragging(true);
+      setCropDragStart({
+        x: e.touches[0].clientX - cropPan.x,
+        y: e.touches[0].clientY - cropPan.y
+      });
+    }
+  };
+
+  const handleCropTouchMove = (e: React.TouchEvent) => {
+    if (!isCropDragging || e.touches.length !== 1) return;
+    setCropPan({
+      x: e.touches[0].clientX - cropDragStart.x,
+      y: e.touches[0].clientY - cropDragStart.y
+    });
+  };
+
+  const handleCropTouchEnd = () => {
+    setIsCropDragging(false);
+  };
+
+  const handleCropWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const zoomDelta = e.deltaY < 0 ? 0.08 : -0.08;
+    setCropZoom(prev => Math.min(3.5, Math.max(0.8, parseFloat((prev + zoomDelta).toFixed(2)))));
+  };
+
+  const handleCropReset = () => {
+    setCropPan({ x: 0, y: 0 });
+    setCropZoom(1);
+  };
+
+  const handleCropSave = () => {
+    if (!cropImageSrc || !cropContainerRef.current) return;
+    setIsSavingCrop(true);
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const container = cropContainerRef.current;
+        if (!container) return;
+
+        const boxWidth = container.clientWidth;
+        const boxHeight = container.clientHeight;
+
+        const outputWidth = 1600;
+        const outputHeight = 900;
+        const scaleFactor = outputWidth / boxWidth;
+
+        const renderedW = (cropBaseSize.width || boxWidth) * cropZoom;
+        const renderedH = (cropBaseSize.height || boxHeight) * cropZoom;
+
+        const imgLeft = (boxWidth / 2) + cropPan.x - (renderedW / 2);
+        const imgTop = (boxHeight / 2) + cropPan.y - (renderedH / 2);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = outputWidth;
+        canvas.height = outputHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Could not get canvas context');
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        ctx.fillStyle = '#043E49';
+        ctx.fillRect(0, 0, outputWidth, outputHeight);
+
+        ctx.drawImage(
+          img,
+          imgLeft * scaleFactor,
+          imgTop * scaleFactor,
+          renderedW * scaleFactor,
+          renderedH * scaleFactor
+        );
+
+        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+        if (cropTargetType === 'goal' && cropTargetIndex !== null && cropTargetIndex >= 0) {
+          setFormData(prev => {
+            const updated = [...prev.goals.goals];
+            if (updated[cropTargetIndex]) {
+              updated[cropTargetIndex] = {
+                ...updated[cropTargetIndex],
+                imageUrl: croppedDataUrl,
+                imageAlt: cropImageAlt || updated[cropTargetIndex].imageAlt
+              };
+            }
+            return {
+              ...prev,
+              goals: {
+                ...prev.goals,
+                goals: updated
+              }
+            };
+          });
+          setSaveStatus(`Initiative ${cropTargetIndex + 1} photo cropped. Click "Save & Publish" to update live site.`);
+          setTimeout(() => setSaveStatus(null), 4000);
+        } else if (cropTargetIndex !== null && cropTargetIndex >= 0) {
+          setFormData(prev => {
+            const updated = [...prev.home.heroSlides];
+            if (updated[cropTargetIndex]) {
+              updated[cropTargetIndex] = {
+                ...updated[cropTargetIndex],
+                imageUrl: croppedDataUrl,
+                imageAlt: cropImageAlt || updated[cropTargetIndex].imageAlt
+              };
+            }
+            return {
+              ...prev,
+              home: {
+                ...prev.home,
+                heroSlides: updated
+              }
+            };
+          });
+          setHeroActionStatus(`Slide ${cropTargetIndex + 1} cropped and updated. Click "Save & Publish" to update live site.`);
+        } else {
+          const newSlide: CarouselSlide = {
+            id: `slide-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+            title: 'Sanctuary Animal Rescue',
+            subtitle: 'Frontline Sanctuary Care',
+            story: 'Safe haven and lifelong rehabilitation for rescued animals.',
+            animalName: 'Sanctuary Rescue',
+            category: 'Canine Care',
+            location: 'Sanctuary Grounds',
+            impactFact: '100% of donor funding goes directly toward emergency animal medical care.',
+            imageUrl: croppedDataUrl,
+            imageAlt: cropImageAlt || 'Hero carousel slide'
+          };
+
+          setFormData(prev => ({
+            ...prev,
+            home: {
+              ...prev.home,
+              heroSlides: [...prev.home.heroSlides, newSlide]
+            }
+          }));
+          setHeroActionStatus('New cropped slide added! Click "Save & Publish" to update live site.');
+        }
+
+        setIsSavingCrop(false);
+        setCropModalOpen(false);
+        setCropImageSrc(null);
+        setTimeout(() => setHeroActionStatus(null), 4000);
+      } catch (err) {
+        console.error('Canvas error:', err);
+        if (cropTargetIndex !== null) {
+          setFormData(prev => {
+            const updated = [...prev.home.heroSlides];
+            updated[cropTargetIndex].imageUrl = cropImageSrc;
+            return { ...prev, home: { ...prev.home, heroSlides: updated } };
+          });
+        } else {
+          const newSlide: CarouselSlide = {
+            id: `slide-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+            title: 'Sanctuary Animal Rescue',
+            subtitle: 'Frontline Sanctuary Care',
+            story: 'Safe haven and lifelong rehabilitation for rescued animals.',
+            animalName: 'Sanctuary Rescue',
+            category: 'Canine Care',
+            location: 'Sanctuary Grounds',
+            impactFact: '100% of donor funding goes directly toward emergency animal medical care.',
+            imageUrl: cropImageSrc,
+            imageAlt: cropImageAlt || 'Hero carousel slide'
+          };
+          setFormData(prev => ({
+            ...prev,
+            home: { ...prev.home, heroSlides: [...prev.home.heroSlides, newSlide] }
+          }));
+        }
+        setIsSavingCrop(false);
+        setCropModalOpen(false);
+      }
+    };
+    img.onerror = () => {
+      setIsSavingCrop(false);
+      alert('Could not load image to crop.');
+    };
+    img.src = cropImageSrc;
+  };
 
   // Update local formData if external content updates
   React.useEffect(() => {
@@ -99,14 +355,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const handleSave = () => {
     setIsSaving(true);
-    onSaveContent(formData);
-    setSaveStatus('All changes saved!');
+    setSavePhase('saving');
     setShowSaveAlertModal(true);
+    setSaveStatus('Saving & publishing changes...');
+
+    onSaveContent(formData);
 
     setTimeout(() => {
+      setSavePhase('success');
       setIsSaving(false);
-      setSaveStatus(null);
-    }, 1500);
+      setSaveStatus('All changes saved and published!');
+    }, 1000);
   };
 
   const handleResetToDefaults = () => {
@@ -118,12 +377,27 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }
   };
 
-  // Hero Carousel multi-file local upload
+  // Hero Carousel local file upload
   const handleHeroLocalFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
     if (validFiles.length === 0) {
       alert('Please select valid image files (PNG, JPG, WEBP, etc.)');
+      return;
+    }
+
+    // When 1 image is uploaded, open it directly inside the interactive Crop & Resize tool
+    if (validFiles.length === 1) {
+      const file = validFiles[0];
+      const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        if (dataUrl) {
+          openCropModal(dataUrl, null, cleanName);
+        }
+      };
+      reader.readAsDataURL(file);
       return;
     }
 
@@ -159,7 +433,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               heroSlides: [...prev.home.heroSlides, ...newSlides]
             }
           }));
-          setHeroActionStatus(`Added ${newSlides.length} image${newSlides.length > 1 ? 's' : ''}! Click "Save & Publish" to update the live website.`);
+          setHeroActionStatus(`Added ${newSlides.length} images! Click "Crop & Position" on any image card to adjust its framing.`);
           setTimeout(() => setHeroActionStatus(null), 4000);
         }
       };
@@ -240,25 +514,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       alert('Please select an image file (PNG, JPG, WEBP, etc.)');
       return;
     }
+    const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string;
       if (dataUrl) {
-        const updated = [...formData.home.heroSlides];
-        updated[index] = {
-          ...updated[index],
-          imageUrl: dataUrl,
-          imageAlt: file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ') || updated[index].imageAlt
-        };
-        setFormData(prev => ({
-          ...prev,
-          home: {
-            ...prev.home,
-            heroSlides: updated
-          }
-        }));
-        setHeroActionStatus(`Replaced image for Slide ${index + 1}.`);
-        setTimeout(() => setHeroActionStatus(null), 3000);
+        openCropModal(dataUrl, index, cleanName || formData.home.heroSlides[index]?.imageAlt);
       }
     };
     reader.readAsDataURL(file);
@@ -1278,8 +1539,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
                       {/* Bottom Card Controls */}
                       <div className="p-3 flex flex-col gap-2 flex-1 justify-between bg-white">
-                        {/* Reorder and Replace Controls */}
-                        <div className="flex items-center justify-between gap-1">
+                        {/* Reorder, Crop, and Replace Controls */}
+                        <div className="flex items-center justify-between gap-1 flex-wrap">
                           <div className="flex items-center gap-1">
                             <button
                               type="button"
@@ -1301,20 +1562,33 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                             </button>
                           </div>
 
-                          {/* Replace Image via Local File */}
-                          <label className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold text-[#043E49] bg-[#043E49]/10 hover:bg-[#043E49]/20 cursor-pointer transition-colors">
-                            <Upload className="w-3 h-3" />
-                            <span>Replace</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                handleReplaceHeroSlideFile(idx, e.target.files);
-                                if (e.target) e.target.value = '';
-                              }}
-                              className="hidden"
-                            />
-                          </label>
+                          <div className="flex items-center gap-1">
+                            {/* Crop & Position Button */}
+                            <button
+                              type="button"
+                              onClick={() => openCropModal(slide.imageUrl, idx, slide.imageAlt)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 cursor-pointer transition-colors shadow-2xs"
+                              title="Crop and drag to position this image"
+                            >
+                              <Crop className="w-3 h-3 text-teal-600" />
+                              <span>Crop</span>
+                            </button>
+
+                            {/* Replace Image via Local File */}
+                            <label className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold text-[#043E49] bg-[#043E49]/10 hover:bg-[#043E49]/20 cursor-pointer transition-colors shadow-2xs">
+                              <Upload className="w-3 h-3" />
+                              <span>Replace</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  handleReplaceHeroSlideFile(idx, e.target.files);
+                                  if (e.target) e.target.value = '';
+                                }}
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
                         </div>
 
                         {/* Editable Image URL Input */}
@@ -2598,7 +2872,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <Target className="w-5 h-5 text-[#043E49]" />
                 <div>
                   <h2 className="text-base font-black text-[#1A1A1A]">Future Goals: Header & Initiatives</h2>
-                  <p className="text-xs text-gray-500">Edit the strategic initiatives, target years, and descriptions.</p>
+                  <p className="text-xs text-gray-500">Edit the strategic initiatives, descriptions, and page header.</p>
                 </div>
               </div>
 
@@ -2644,141 +2918,329 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
             {/* Goal Items List */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center justify-between pb-3 border-b border-gray-100 flex-wrap gap-2">
                 <div>
                   <h2 className="text-base font-black text-[#1A1A1A]">Strategic Goal Sections ({formData.goals.goals.length})</h2>
-                  <p className="text-xs text-gray-500">Edit the 6 strategic initiatives and their target timelines.</p>
+                  <p className="text-xs text-gray-500">Add, delete, reorder, or edit the strategic initiatives.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newGoal: FutureGoalItem = {
-                      id: `goal-${Date.now()}`,
-                      tag: 'New Strategic Initiative',
-                      targetYear: 'Target: 2030',
-                      heading: 'Expanded Wildlife Care',
-                      description: 'Expanding sanctuary acreage and mobile field clinics to protect vulnerable animal populations.',
-                      imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80',
-                      imageAlt: 'Sanctuary expansion project',
-                      highlights: ['Full community transparency', 'Zero-footprint environmental planning']
-                    };
-                    setFormData({
-                      ...formData,
-                      goals: {
-                        ...formData.goals,
-                        goals: [...formData.goals.goals, newGoal]
-                      }
-                    });
-                  }}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Add Initiative</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newGoal: FutureGoalItem = {
+                        id: `goal-${Date.now()}`,
+                        tag: 'New Strategic Initiative',
+                        targetYear: '',
+                        heading: 'Expanded Wildlife Care',
+                        description: 'Expanding sanctuary acreage and mobile field clinics to protect vulnerable animal populations.',
+                        imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80',
+                        imageAlt: 'Sanctuary expansion project',
+                        highlights: ['Full community transparency', 'Zero-footprint environmental planning']
+                      };
+                      setFormData({
+                        ...formData,
+                        goals: {
+                          ...formData.goals,
+                          goals: [...formData.goals.goals, newGoal]
+                        }
+                      });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold bg-[#043e49] hover:bg-[#032f38] text-white shadow-2xs transition-all cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Initiative</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-[#009966] hover:bg-[#008055] text-white shadow-2xs transition-all cursor-pointer disabled:opacity-70"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Publishing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-3.5 h-3.5" />
+                        <span>Save & Publish</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-4">
-                {formData.goals.goals.map((goal, idx) => (
-                  <div key={goal.id || idx} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-full bg-[#043E49] text-white text-[11px] font-bold flex items-center justify-center">
-                          {idx + 1}
-                        </span>
-                        <h4 className="text-xs font-black text-gray-800">
-                          {goal.tag} — {goal.heading}
-                        </h4>
-                      </div>
-                      {formData.goals.goals.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm(`Delete goal "${goal.heading}"?`)) {
-                              setFormData({
-                                ...formData,
-                                goals: {
-                                  ...formData.goals,
-                                  goals: formData.goals.goals.filter((_, i) => i !== idx)
-                                }
-                              });
-                            }
-                          }}
-                          className="text-rose-600 hover:text-rose-800 text-xs font-bold cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                {formData.goals.goals.length === 0 ? (
+                  <div className="p-8 text-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 space-y-3">
+                    <div className="w-10 h-10 mx-auto rounded-full bg-teal-50 text-[#043E49] flex items-center justify-center">
+                      <Target className="w-5 h-5" />
                     </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Tag</label>
-                        <input
-                          type="text"
-                          value={goal.tag}
-                          onChange={(e) => {
-                            const updated = [...formData.goals.goals];
-                            updated[idx].tag = e.target.value;
-                            setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Target Year</label>
-                        <input
-                          type="text"
-                          value={goal.targetYear}
-                          onChange={(e) => {
-                            const updated = [...formData.goals.goals];
-                            updated[idx].targetYear = e.target.value;
-                            setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Heading</label>
-                        <input
-                          type="text"
-                          value={goal.heading}
-                          onChange={(e) => {
-                            const updated = [...formData.goals.goals];
-                            updated[idx].heading = e.target.value;
-                            setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold"
-                        />
-                      </div>
-                      <div className="sm:col-span-2">
-                        <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Description</label>
-                        <textarea
-                          rows={2}
-                          value={goal.description}
-                          onChange={(e) => {
-                            const updated = [...formData.goals.goals];
-                            updated[idx].description = e.target.value;
-                            setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Image URL</label>
-                        <input
-                          type="text"
-                          value={goal.imageUrl}
-                          onChange={(e) => {
-                            const updated = [...formData.goals.goals];
-                            updated[idx].imageUrl = e.target.value;
-                            setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
-                          }}
-                          className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                        />
-                      </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-800">No Initiatives Configured</h4>
+                      <p className="text-xs text-gray-500">Click below to add a new strategic initiative card.</p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newGoal: FutureGoalItem = {
+                          id: `goal-${Date.now()}`,
+                          tag: 'New Strategic Initiative',
+                          targetYear: '',
+                          heading: 'Expanded Wildlife Care',
+                          description: 'Expanding sanctuary acreage and mobile field clinics to protect vulnerable animal populations.',
+                          imageUrl: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80',
+                          imageAlt: 'Sanctuary expansion project',
+                          highlights: ['Full community transparency', 'Zero-footprint environmental planning']
+                        };
+                        setFormData({
+                          ...formData,
+                          goals: {
+                            ...formData.goals,
+                            goals: [newGoal]
+                          }
+                        });
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] transition-colors cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add First Initiative</span>
+                    </button>
                   </div>
-                ))}
+                ) : (
+                  formData.goals.goals.map((goal, idx) => (
+                    <div key={goal.id || idx} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-[#043E49] text-white text-[11px] font-bold flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                          <h4 className="text-xs font-black text-gray-800">
+                            {goal.tag} — {goal.heading}
+                          </h4>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          {/* Reorder Up / Down */}
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => {
+                                if (idx === 0) return;
+                                const updated = [...formData.goals.goals];
+                                const [moved] = updated.splice(idx, 1);
+                                updated.splice(idx - 1, 0, moved);
+                                setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
+                              }}
+                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none text-gray-600 transition-colors cursor-pointer"
+                              title="Move Up"
+                            >
+                              <ArrowUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === formData.goals.goals.length - 1}
+                              onClick={() => {
+                                if (idx === formData.goals.goals.length - 1) return;
+                                const updated = [...formData.goals.goals];
+                                const [moved] = updated.splice(idx, 1);
+                                updated.splice(idx + 1, 0, moved);
+                                setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
+                              }}
+                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none text-gray-600 transition-colors cursor-pointer"
+                              title="Move Down"
+                            >
+                              <ArrowDown className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          {/* Inline Delete Confirmation - No window.confirm */}
+                          {deletingGoalIndex === idx ? (
+                            <div 
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex items-center gap-1.5 bg-[#FFF1F2] border border-[#FDA4AF] px-2.5 py-0.5 rounded-full shadow-xs animate-in fade-in duration-150"
+                            >
+                              <span className="text-[11px] font-bold text-[#BE123C] select-none pl-0.5">Delete?</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData({
+                                    ...formData,
+                                    goals: {
+                                      ...formData.goals,
+                                      goals: formData.goals.goals.filter((_, i) => i !== idx)
+                                    }
+                                  });
+                                  setDeletingGoalIndex(null);
+                                }}
+                                className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#E11D48] hover:bg-[#BE123C] text-white transition-colors cursor-pointer shadow-xs"
+                              >
+                                Yes
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeletingGoalIndex(null)}
+                                className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#334155] transition-colors cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setDeletingGoalIndex(idx)}
+                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-rose-50 text-gray-400 hover:text-rose-600 transition-colors cursor-pointer"
+                              title="Delete this initiative card"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Tag</label>
+                          <input
+                            type="text"
+                            value={goal.tag}
+                            onChange={(e) => {
+                              const updated = [...formData.goals.goals];
+                              updated[idx].tag = e.target.value;
+                              setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
+                            }}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Heading</label>
+                          <input
+                            type="text"
+                            value={goal.heading}
+                            onChange={(e) => {
+                              const updated = [...formData.goals.goals];
+                              updated[idx].heading = e.target.value;
+                              setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
+                            }}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold"
+                          />
+                        </div>
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Description</label>
+                          <textarea
+                            rows={2}
+                            value={goal.description}
+                            onChange={(e) => {
+                              const updated = [...formData.goals.goals];
+                              updated[idx].description = e.target.value;
+                              setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
+                            }}
+                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
+                          />
+                        </div>
+                        <div className="sm:col-span-2 bg-white rounded-xl border border-gray-200 p-3.5 shadow-2xs space-y-3">
+                          <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                            <div className="flex items-center gap-1.5">
+                              <ImageIcon className="w-3.5 h-3.5 text-[#043E49]" />
+                              <span className="text-xs font-bold text-gray-800">Initiative Photo</span>
+                            </div>
+                            <span className="text-[10px] font-semibold text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-2 py-0.5 rounded-md">
+                              16:9 Landscape
+                            </span>
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+                            {/* 16:9 Thumbnail with Crop Overlay */}
+                            <div className="relative w-full sm:w-52 aspect-16/9 rounded-lg overflow-hidden bg-gray-900 border border-gray-200 shadow-inner group shrink-0">
+                              <img
+                                src={goal.imageUrl}
+                                alt={goal.heading}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80';
+                                }}
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => openCropModal(goal.imageUrl, idx, goal.heading, 'goal')}
+                                  className="px-2.5 py-1.5 rounded-lg bg-white/95 hover:bg-white text-gray-900 text-xs font-bold flex items-center gap-1 shadow-md transition-all active:scale-95 cursor-pointer"
+                                  title="Crop & reposition this image"
+                                >
+                                  <Crop className="w-3.5 h-3.5 text-[#043E49]" />
+                                  <span>Crop Photo</span>
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Control Panel: Upload, Crop, and URL */}
+                            <div className="flex-1 space-y-2.5 w-full">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#043E49] hover:bg-[#032f38] cursor-pointer transition-colors shadow-2xs">
+                                  <Upload className="w-3.5 h-3.5" />
+                                  <span>Upload New Photo</span>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => {
+                                      const files = e.target.files;
+                                      if (!files || files.length === 0) return;
+                                      const file = files[0];
+                                      const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                                      const reader = new FileReader();
+                                      reader.onload = (ev) => {
+                                        const dataUrl = ev.target?.result as string;
+                                        if (dataUrl) {
+                                          openCropModal(dataUrl, idx, cleanName || goal.heading, 'goal');
+                                        }
+                                      };
+                                      reader.readAsDataURL(file);
+                                      if (e.target) e.target.value = '';
+                                    }}
+                                    className="hidden"
+                                  />
+                                </label>
+
+                                <button
+                                  type="button"
+                                  onClick={() => openCropModal(goal.imageUrl, idx, goal.heading, 'goal')}
+                                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 cursor-pointer transition-colors shadow-2xs"
+                                  title="Crop and position the framing"
+                                >
+                                  <Crop className="w-3.5 h-3.5 text-teal-700" />
+                                  <span>Crop & Position</span>
+                                </button>
+                              </div>
+
+                              <div className="space-y-1">
+                                <label className="block text-[10px] font-semibold text-gray-500">
+                                  Or paste an image web URL:
+                                </label>
+                                <div className="relative flex items-center">
+                                  <LinkIcon className="w-3.5 h-3.5 absolute left-2.5 text-gray-400 pointer-events-none" />
+                                  <input
+                                    type="text"
+                                    value={goal.imageUrl}
+                                    onChange={(e) => {
+                                      const updated = [...formData.goals.goals];
+                                      updated[idx].imageUrl = e.target.value;
+                                      setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
+                                    }}
+                                    placeholder="https://images.unsplash.com/photo-..."
+                                    className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50/50 hover:bg-white focus:bg-white text-xs font-mono transition-colors"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -3182,39 +3644,312 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         )}
       </main>
 
-      {/* Simple Saved Notification Alert */}
+      {/* Saving Process & Saved Notification Alert */}
       {showSaveAlertModal && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-150"
-          onClick={() => setShowSaveAlertModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => {
+            if (savePhase === 'success') setShowSaveAlertModal(false);
+          }}
         >
           <div 
             className="bg-white rounded-2xl shadow-xl border border-gray-100 max-w-xs sm:max-w-sm w-full p-6 text-center space-y-4 animate-in zoom-in-95 duration-150 relative"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Simple Checkmark Icon */}
-            <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shadow-2xs">
-              <Check className="w-6 h-6 stroke-[3]" />
+            {savePhase === 'saving' ? (
+              <>
+                {/* Saving Process Spinner */}
+                <div className="w-14 h-14 mx-auto rounded-full bg-teal-50 border border-teal-100 text-[#043E49] flex items-center justify-center shadow-2xs">
+                  <Loader2 className="w-7 h-7 animate-spin text-[#043E49]" />
+                </div>
+
+                <div className="space-y-1.5">
+                  <h3 className="text-base font-bold text-gray-900">
+                    Saving & Publishing...
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Saving your changes and publishing them live to the website.
+                  </p>
+                </div>
+
+                {/* Animated progress indicator */}
+                <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                  <div className="bg-[#043E49] h-full rounded-full animate-pulse w-3/4"></div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Success Checkmark Icon */}
+                <div className="w-14 h-14 mx-auto rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shadow-2xs animate-in zoom-in-75 duration-200">
+                  <Check className="w-7 h-7 stroke-[3]" />
+                </div>
+
+                {/* Success Message */}
+                <div className="space-y-1.5">
+                  <h3 className="text-base font-bold text-gray-900">
+                    All Changes Saved & Published!
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Your updates have been successfully saved and published to the live website.
+                  </p>
+                </div>
+
+                {/* OK Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowSaveAlertModal(false)}
+                  className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white transition-colors cursor-pointer shadow-xs"
+                >
+                  OK, Got It
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Image Resize & Crop Modal */}
+      {cropModalOpen && cropImageSrc && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+          onClick={() => {
+            if (!isSavingCrop) {
+              setCropModalOpen(false);
+              setCropImageSrc(null);
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl border border-gray-200 max-w-2xl w-full p-5 sm:p-6 space-y-4 animate-in zoom-in-95 duration-150 relative max-h-[92vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-teal-100 text-teal-800 flex items-center justify-center font-bold shadow-2xs">
+                  <Crop className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-gray-900">
+                    Image Resize & Crop
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    Click & drag the picture to position it. Zoom in or out to fit.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setCropModalOpen(false);
+                  setCropImageSrc(null);
+                }}
+                disabled={isSavingCrop}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                title="Cancel crop"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            {/* Simple Message */}
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-gray-900">
-                All Changes Saved!
-              </h3>
-              <p className="text-xs text-gray-500">
-                Your updates have been saved and published to the website.
-              </p>
+            {/* Instruction banner */}
+            <div className="p-2.5 rounded-xl bg-teal-50/80 border border-teal-200/80 text-[#043E49] text-xs flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Move className="w-4 h-4 shrink-0 text-teal-700 animate-pulse" />
+                <span className="font-medium">
+                  <strong>Click and drag the image</strong> anywhere inside the crop box to position which part is visible.
+                </span>
+              </div>
+              <span className="hidden sm:inline-block text-[11px] font-mono bg-white/80 border border-teal-200 px-2 py-0.5 rounded text-teal-800">
+                16:9 Hero Format
+              </span>
             </div>
 
-            {/* Simple OK Button */}
-            <button
-              type="button"
-              onClick={() => setShowSaveAlertModal(false)}
-              className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white transition-colors cursor-pointer shadow-xs"
-            >
-              OK
-            </button>
+            {/* Main Interactive Crop Box */}
+            <div className="relative w-full">
+              <div 
+                ref={cropContainerRef}
+                className="relative w-full aspect-16/9 bg-gray-950 rounded-xl overflow-hidden cursor-grab active:cursor-grabbing select-none border-2 border-[#043E49] shadow-inner"
+                onMouseDown={handleCropMouseDown}
+                onMouseMove={handleCropMouseMove}
+                onMouseUp={handleCropMouseUp}
+                onMouseLeave={handleCropMouseUp}
+                onTouchStart={handleCropTouchStart}
+                onTouchMove={handleCropTouchMove}
+                onTouchEnd={handleCropTouchEnd}
+                onWheel={handleCropWheel}
+              >
+                {/* The Draggable Image */}
+                <img
+                  src={cropImageSrc}
+                  alt="Crop Target"
+                  draggable={false}
+                  className="transition-transform duration-75 select-none"
+                  style={{
+                    transform: `translate(calc(-50% + ${cropPan.x}px), calc(-50% + ${cropPan.y}px)) scale(${cropZoom})`,
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                    width: cropBaseSize.width ? `${cropBaseSize.width}px` : '100%',
+                    height: cropBaseSize.height ? `${cropBaseSize.height}px` : 'auto',
+                    pointerEvents: 'none',
+                    userSelect: 'none'
+                  }}
+                />
+
+                {/* Rule of Thirds Crop Grid Guide */}
+                <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3 border border-white/25">
+                  <div className="border-r border-b border-white/20"></div>
+                  <div className="border-r border-b border-white/20"></div>
+                  <div className="border-b border-white/20"></div>
+                  <div className="border-r border-b border-white/20"></div>
+                  <div className="border-r border-b border-white/20"></div>
+                  <div className="border-b border-white/20"></div>
+                  <div className="border-r border-white/20"></div>
+                  <div className="border-r border-white/20"></div>
+                  <div></div>
+                </div>
+
+                {/* Drag instruction overlay badge */}
+                <div className="absolute top-2 left-2 pointer-events-none bg-black/60 backdrop-blur-sm text-white px-2.5 py-1 rounded-md text-[11px] font-medium flex items-center gap-1.5 shadow-xs">
+                  <Move className="w-3 h-3 text-teal-300" />
+                  <span>Drag image to position</span>
+                </div>
+
+                {/* Current Zoom badge */}
+                <div className="absolute top-2 right-2 pointer-events-none bg-black/60 backdrop-blur-sm text-white px-2 py-1 rounded-md text-[11px] font-mono font-medium shadow-xs">
+                  {Math.round(cropZoom * 100)}%
+                </div>
+              </div>
+            </div>
+
+            {/* Zoom Controls Bar */}
+            <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 flex items-center gap-3">
+              <span className="text-xs font-bold text-gray-700 shrink-0 flex items-center gap-1">
+                <ZoomIn className="w-3.5 h-3.5 text-gray-500" />
+                <span>Zoom:</span>
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setCropZoom(prev => Math.max(0.8, parseFloat((prev - 0.1).toFixed(2))))}
+                className="p-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 transition-colors cursor-pointer shrink-0"
+                title="Zoom out"
+              >
+                <ZoomOut className="w-3.5 h-3.5" />
+              </button>
+
+              <input
+                type="range"
+                min="0.8"
+                max="3.0"
+                step="0.05"
+                value={cropZoom}
+                onChange={(e) => setCropZoom(parseFloat(e.target.value))}
+                className="flex-1 h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#043E49]"
+              />
+
+              <button
+                type="button"
+                onClick={() => setCropZoom(prev => Math.min(3.0, parseFloat((prev + 0.1).toFixed(2))))}
+                className="p-1.5 rounded-lg bg-white border border-gray-200 hover:bg-gray-100 text-gray-700 transition-colors cursor-pointer shrink-0"
+                title="Zoom in"
+              >
+                <ZoomIn className="w-3.5 h-3.5" />
+              </button>
+
+              <span className="text-xs font-mono font-bold text-gray-700 shrink-0 min-w-10 text-right">
+                {Math.round(cropZoom * 100)}%
+              </span>
+            </div>
+
+            {/* Final Result Preview Section */}
+            <div className="bg-gray-50 rounded-xl p-3.5 border border-gray-200 flex flex-col sm:flex-row items-center gap-4">
+              <div className="shrink-0 text-center sm:text-left">
+                <span className="text-xs font-bold text-gray-800 block">Final Result Preview</span>
+                <span className="text-[11px] text-gray-500 block mt-0.5">Live carousel display framing</span>
+              </div>
+
+              {/* Scaled Preview Box */}
+              <div className="relative w-44 sm:w-48 aspect-16/9 rounded-lg overflow-hidden bg-gray-950 border-2 border-emerald-600/40 shadow-xs shrink-0">
+                <img
+                  src={cropImageSrc}
+                  alt="Final preview"
+                  draggable={false}
+                  className="select-none"
+                  style={{
+                    transform: `translate(calc(-50% + ${cropPan.x * (176 / (cropContainerRef.current?.clientWidth || 540))}px), calc(-50% + ${cropPan.y * (176 / (cropContainerRef.current?.clientWidth || 540))}px)) scale(${cropZoom})`,
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                    width: cropBaseSize.width ? `${cropBaseSize.width * (176 / (cropContainerRef.current?.clientWidth || 540))}px` : '100%',
+                    height: cropBaseSize.height ? `${cropBaseSize.height * (176 / (cropContainerRef.current?.clientWidth || 540))}px` : 'auto',
+                    pointerEvents: 'none',
+                    userSelect: 'none'
+                  }}
+                />
+              </div>
+
+              <div className="text-xs text-gray-600 space-y-1 flex-1">
+                <div className="flex items-center gap-1.5 font-semibold text-emerald-700">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Ready to crop at 16:9 ratio</span>
+                </div>
+                <p className="text-[11px] text-gray-500">
+                  Drag the photo to center your favorite part. The final output is rendered in high resolution.
+                </p>
+              </div>
+            </div>
+
+            {/* Bottom Reset, Cancel, and Save Actions */}
+            <div className="flex items-center justify-between pt-3 border-t border-gray-100 flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleCropReset}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
+                title="Reset position and zoom"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCropModalOpen(false);
+                    setCropImageSrc(null);
+                  }}
+                  disabled={isSavingCrop}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:text-gray-800 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCropSave}
+                  disabled={isSavingCrop}
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white transition-colors cursor-pointer shadow-xs disabled:opacity-75"
+                >
+                  {isSavingCrop ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Saving Crop...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
