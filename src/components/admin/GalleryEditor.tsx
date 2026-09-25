@@ -49,11 +49,8 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ items, onChange })
   };
 
   const handleDeleteItem = (index: number) => {
-    const title = items[index].title || 'this photo';
-    if (window.confirm(`Are you sure you want to remove "${title}"?`)) {
-      const list = items.filter((_, i) => i !== index);
-      onChange(list);
-    }
+    const list = items.filter((_, i) => i !== index);
+    onChange(list);
   };
 
   const handleMoveItem = (index: number, direction: 'up' | 'down') => {

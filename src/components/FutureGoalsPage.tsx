@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   ArrowLeft, 
-  Calendar, 
   CheckCircle2, 
   Heart, 
   Sparkles, 
@@ -148,6 +147,8 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
     ? goals
     : FUTURE_GOALS;
 
+  const displayedGoals = activeGoals;
+
   const ctaHeading = content?.ctaHeading || 'Help Us Turn These Goals into Reality';
   const ctaDescription = content?.ctaDescription || 'Every contribution directly aids injured, orphaned, and resident sanctuary animals. Join us in building permanent foothill havens and advanced trauma care.';
   const ctaDonateButtonText = content?.ctaDonateButtonText || 'Make a Future Goals Contribution';
@@ -219,7 +220,7 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
 
         {/* 6 Horizontal Goal Sections */}
         <div className="space-y-4 sm:space-y-6">
-          {activeGoals.map((goal, index) => (
+          {displayedGoals.map((goal, index) => (
             <section
               key={goal.id || index}
               id={`future-goal-section-${index + 1}`}
@@ -245,12 +246,6 @@ export const FutureGoalsPage: React.FC<FutureGoalsPageProps> = ({
                     <span className="text-[10px] font-black uppercase tracking-wider text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-2.5 py-0.5 rounded-full">
                       {goal.tag}
                     </span>
-                    {goal.targetYear && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">
-                        <Calendar className="w-2.5 h-2.5 text-gray-400" />
-                        {goal.targetYear}
-                      </span>
-                    )}
                   </div>
 
                   <h3 className="text-lg sm:text-xl lg:text-2xl font-black text-[#1A1A1A] tracking-tight leading-snug">

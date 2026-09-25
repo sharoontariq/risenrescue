@@ -309,9 +309,6 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({
                   <h4 className="text-xs sm:text-sm font-bold text-[#1A1A1A]">
                     {member.name}
                   </h4>
-                  <p className="text-[11px] font-semibold text-[#043E49]">
-                    {member.role}
-                  </p>
                   <p className="text-[11px] text-gray-500 leading-relaxed flex-grow">
                     {member.bio}
                   </p>

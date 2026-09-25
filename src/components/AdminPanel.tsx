@@ -35,7 +35,12 @@ import {
   Move,
   ZoomIn,
   ZoomOut,
-  Link as LinkIcon
+  Link as LinkIcon,
+  Tag,
+  Settings2,
+  Filter,
+  Pencil,
+  FolderPlus
 } from 'lucide-react';
 import { GalleryItem, CarouselSlide, WhatWeDoItem, StoryCardItem } from '../types';
 import { 
@@ -53,6 +58,8 @@ interface AdminPanelProps {
   galleryItems: GalleryItem[];
   onAddPhoto: (item: GalleryItem) => void;
   onDeletePhoto: (id: string) => void;
+  onUpdateGalleryItems?: (items: GalleryItem[]) => void;
+  onUpdatePhoto?: (item: GalleryItem) => void;
   onViewGallery: () => void;
   onBackToHome: () => void;
   onLogout?: () => void;
@@ -67,6 +74,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   galleryItems,
   onAddPhoto,
   onDeletePhoto,
+  onUpdateGalleryItems,
+  onUpdatePhoto,
   onViewGallery,
   onBackToHome,
   onLogout,
@@ -75,10 +84,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [formData, setFormData] = useState<SiteContent>(() => JSON.parse(JSON.stringify(content)));
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
-  // Gallery photo upload state
+  // Gallery photo upload & category management state
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [photoTitle, setPhotoTitle] = useState('');
   const [photoCaption, setPhotoCaption] = useState('');
+  const [selectedUploadCategory, setSelectedUploadCategory] = useState<string>('');
+  const [selectedGalleryCategoryFilter, setSelectedGalleryCategoryFilter] = useState<string>('All');
+  const [isManagingGalleryCategories, setIsManagingGalleryCategories] = useState(false);
+  const [newGalleryCategoryInput, setNewGalleryCategoryInput] = useState('');
+  const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [editingCategoryIndex, setEditingCategoryIndex] = useState<number | null>(null);
+  const [editingCategoryValue, setEditingCategoryValue] = useState('');
+  const [deletingCategoryName, setDeletingCategoryName] = useState<string | null>(null);
+  const [cropTargetGalleryId, setCropTargetGalleryId] = useState<string | null>(null);
+  const [editingPhotoId, setEditingPhotoId] = useState<string | null>(null);
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
+  const [editPhotoTitle, setEditPhotoTitle] = useState('');
+  const [editPhotoCaption, setEditPhotoCaption] = useState('');
+  const [editPhotoCategory, setEditPhotoCategory] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -96,6 +119,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [deletingHeroSlideIndex, setDeletingHeroSlideIndex] = useState<number | null>(null);
   const [deletingGoalIndex, setDeletingGoalIndex] = useState<number | null>(null);
 
+  // Goal Category Feature State
+  const [selectedGoalCategoryFilter, setSelectedGoalCategoryFilter] = useState<string>('all');
+  const [isManagingGoalCategories, setIsManagingGoalCategories] = useState(false);
+  const [newCategoryPresetInput, setNewCategoryPresetInput] = useState('');
+  const [customGoalCategories, setCustomGoalCategories] = useState<string[]>([
+    'Land & Habitats',
+    'Advanced Medicine',
+    'Rapid Rescue & Extraction',
+    'Wildlife Rehabilitation',
+    'Eco-Mobility',
+    'Solar & Clean Energy',
+    'Education & Youth',
+    'Emergency Network',
+    'Sanctuary Stewardship'
+  ]);
+  const [renameFromCategory, setRenameFromCategory] = useState('');
+  const [renameToCategory, setRenameToCategory] = useState('');
+
   // Saving state & Simple Notification Modal state
   const [isSaving, setIsSaving] = useState(false);
   const [showSaveAlertModal, setShowSaveAlertModal] = useState(false);
@@ -105,7 +146,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   const [cropTargetIndex, setCropTargetIndex] = useState<number | null>(null);
-  const [cropTargetType, setCropTargetType] = useState<'hero' | 'goal'>('hero');
+  const [cropTargetType, setCropTargetType] = useState<'hero' | 'goal' | 'gallery'>('hero');
   const [cropImageAlt, setCropImageAlt] = useState<string>('Hero carousel slide');
   const [cropPan, setCropPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [cropZoom, setCropZoom] = useState<number>(1);
@@ -116,8 +157,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
   const cropContainerRef = useRef<HTMLDivElement>(null);
 
-  const openCropModal = (imageSrc: string, targetIndex: number | null, altText = 'Hero carousel slide', targetType: 'hero' | 'goal' = 'hero') => {
+  const openCropModal = (
+    imageSrc: string, 
+    targetIndex: number | null, 
+    altText = 'Hero carousel slide', 
+    targetType: 'hero' | 'goal' | 'gallery' = 'hero',
+    targetGalleryId?: string
+  ) => {
     setCropTargetType(targetType);
+    setCropTargetGalleryId(targetGalleryId || null);
     setCropImageSrc(imageSrc);
     setCropTargetIndex(targetIndex);
     setCropImageAlt(altText);
@@ -126,7 +174,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setCropModalOpen(true);
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    if (imageSrc.startsWith('http://') || imageSrc.startsWith('https://')) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = () => {
       const natW = img.naturalWidth || 800;
       const natH = img.naturalHeight || 600;
@@ -140,8 +190,42 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         height: natH * coverScale
       });
     };
+    img.onerror = () => {
+      setCropBaseSize({
+        width: 540,
+        height: (540 * 9) / 16
+      });
+    };
     img.src = imageSrc;
   };
+
+  // Re-measure and fit image to container when modal mounts
+  React.useEffect(() => {
+    if (!cropModalOpen || !cropImageSrc) return;
+    const timer = setTimeout(() => {
+      const container = cropContainerRef.current;
+      const containerW = container?.clientWidth || 540;
+      const containerH = (containerW * 9) / 16;
+
+      const img = new Image();
+      if (cropImageSrc.startsWith('http://') || cropImageSrc.startsWith('https://')) {
+        img.crossOrigin = 'anonymous';
+      }
+      img.onload = () => {
+        const natW = img.naturalWidth || 800;
+        const natH = img.naturalHeight || 600;
+        const scaleW = containerW / natW;
+        const scaleH = containerH / natH;
+        const coverScale = Math.max(scaleW, scaleH);
+        setCropBaseSize({
+          width: natW * coverScale,
+          height: natH * coverScale
+        });
+      };
+      img.src = cropImageSrc;
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [cropModalOpen, cropImageSrc]);
 
   const handleCropMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -203,7 +287,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setIsSavingCrop(true);
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    if (cropImageSrc.startsWith('http://') || cropImageSrc.startsWith('https://')) {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = () => {
       try {
         const container = cropContainerRef.current;
@@ -244,25 +330,52 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
         const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
 
-        if (cropTargetType === 'goal' && cropTargetIndex !== null && cropTargetIndex >= 0) {
-          setFormData(prev => {
-            const updated = [...prev.goals.goals];
-            if (updated[cropTargetIndex]) {
-              updated[cropTargetIndex] = {
-                ...updated[cropTargetIndex],
-                imageUrl: croppedDataUrl,
-                imageAlt: cropImageAlt || updated[cropTargetIndex].imageAlt
-              };
+        if (cropTargetType === 'gallery') {
+          if (cropTargetGalleryId) {
+            const updated = galleryItems.map(item => 
+              item.id === cropTargetGalleryId 
+                ? { ...item, imageUrl: croppedDataUrl } 
+                : item
+            );
+            if (onUpdateGalleryItems) {
+              onUpdateGalleryItems(updated);
+            } else if (onUpdatePhoto) {
+              const target = updated.find(i => i.id === cropTargetGalleryId);
+              if (target) onUpdatePhoto(target);
             }
-            return {
-              ...prev,
-              goals: {
-                ...prev.goals,
-                goals: updated
-              }
+            setSaveStatus('Gallery photo resized and saved!');
+            setTimeout(() => setSaveStatus(null), 3500);
+          } else if (previewImage) {
+            setPreviewImage(croppedDataUrl);
+            setSaveStatus('Photo resized!');
+            setTimeout(() => setSaveStatus(null), 3000);
+          }
+          setIsSavingCrop(false);
+          setCropModalOpen(false);
+          setCropImageSrc(null);
+          setCropTargetGalleryId(null);
+          return;
+        }
+
+        if (cropTargetType === 'goal' && cropTargetIndex !== null && cropTargetIndex >= 0) {
+          const updatedGoals = [...formData.goals.goals];
+          if (updatedGoals[cropTargetIndex]) {
+            updatedGoals[cropTargetIndex] = {
+              ...updatedGoals[cropTargetIndex],
+              imageUrl: croppedDataUrl,
+              imageAlt: cropImageAlt || updatedGoals[cropTargetIndex].imageAlt
             };
-          });
-          setSaveStatus(`Initiative ${cropTargetIndex + 1} photo cropped. Click "Save & Publish" to update live site.`);
+          }
+          const newContent: SiteContent = {
+            ...formData,
+            goals: {
+              ...formData.goals,
+              goals: updatedGoals
+            }
+          };
+          setFormData(newContent);
+          onSaveContent(newContent);
+          setSaveStatus(`Initiative ${cropTargetIndex + 1} photo updated & published!`);
           setTimeout(() => setSaveStatus(null), 4000);
         } else if (cropTargetIndex !== null && cropTargetIndex >= 0) {
           setFormData(prev => {
@@ -313,7 +426,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         setTimeout(() => setHeroActionStatus(null), 4000);
       } catch (err) {
         console.error('Canvas error:', err);
-        if (cropTargetIndex !== null) {
+        if (cropTargetType === 'gallery') {
+          setIsSavingCrop(false);
+          setCropModalOpen(false);
+          setCropImageSrc(null);
+          setCropTargetGalleryId(null);
+          return;
+        }
+        if (cropTargetType === 'goal' && cropTargetIndex !== null && cropTargetIndex >= 0) {
+          setFormData(prev => {
+            const updated = [...prev.goals.goals];
+            if (updated[cropTargetIndex]) {
+              updated[cropTargetIndex] = {
+                ...updated[cropTargetIndex],
+                imageUrl: cropImageSrc,
+                imageAlt: cropImageAlt || updated[cropTargetIndex].imageAlt
+              };
+            }
+            return { ...prev, goals: { ...prev.goals, goals: updated } };
+          });
+        } else if (cropTargetIndex !== null) {
           setFormData(prev => {
             const updated = [...prev.home.heroSlides];
             updated[cropTargetIndex].imageUrl = cropImageSrc;
@@ -342,8 +474,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       }
     };
     img.onerror = () => {
+      if (cropTargetType === 'gallery') {
+        setIsSavingCrop(false);
+        setCropModalOpen(false);
+        setCropImageSrc(null);
+        setCropTargetGalleryId(null);
+        return;
+      }
+      if (cropTargetType === 'goal' && cropTargetIndex !== null && cropTargetIndex >= 0) {
+        setFormData(prev => {
+          const updated = [...prev.goals.goals];
+          if (updated[cropTargetIndex]) {
+            updated[cropTargetIndex] = {
+              ...updated[cropTargetIndex],
+              imageUrl: cropImageSrc,
+              imageAlt: cropImageAlt || updated[cropTargetIndex].imageAlt
+            };
+          }
+          return { ...prev, goals: { ...prev.goals, goals: updated } };
+        });
+      }
       setIsSavingCrop(false);
-      alert('Could not load image to crop.');
+      setCropModalOpen(false);
+      setCropImageSrc(null);
     };
     img.src = cropImageSrc;
   };
@@ -360,6 +513,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setSaveStatus('Saving & publishing changes...');
 
     onSaveContent(formData);
+    try {
+      localStorage.setItem('pawhaven_admin_gallery_photos', JSON.stringify(galleryItems));
+    } catch {
+      // storage error
+    }
 
     setTimeout(() => {
       setSavePhase('success');
@@ -369,12 +527,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   const handleResetToDefaults = () => {
-    if (window.confirm('Reset all website text, slides, stories, and sections to default? Your uploaded gallery photos will remain safe.')) {
-      onResetContent();
-      setFormData(JSON.parse(JSON.stringify(DEFAULT_SITE_CONTENT)));
-      setSaveStatus('All content restored to original defaults.');
-      setTimeout(() => setSaveStatus(null), 3500);
-    }
+    onResetContent();
+    setFormData(JSON.parse(JSON.stringify(DEFAULT_SITE_CONTENT)));
+    setSaveStatus('All content restored to original defaults.');
+    setTimeout(() => setSaveStatus(null), 3500);
   };
 
   // Hero Carousel local file upload
@@ -906,6 +1062,223 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     reader.readAsDataURL(file);
   };
 
+  const galleryCategories: string[] = React.useMemo(() => {
+    const defined = (formData.gallery?.categories && Array.isArray(formData.gallery.categories))
+      ? formData.gallery.categories
+      : [];
+    const photoCategories = galleryItems.map(item => item.category?.trim()).filter(Boolean) as string[];
+    const fallback = ['Sanctuary Life', 'Feline Care', 'Wildlife Rehabilitation', 'Veterinary Care', 'Events', 'Projects', 'Other'];
+    const combined = [...defined, ...photoCategories];
+    const unique = Array.from(new Set(combined.length > 0 ? combined : fallback));
+    return unique;
+  }, [formData.gallery?.categories, galleryItems]);
+
+  const adminFilteredGalleryItems = React.useMemo(() => {
+    if (selectedGalleryCategoryFilter === 'All') return galleryItems;
+    return galleryItems.filter(item => (item.category || '').toLowerCase() === selectedGalleryCategoryFilter.toLowerCase());
+  }, [galleryItems, selectedGalleryCategoryFilter]);
+
+  const handleAddGalleryCategory = (nameToAdd?: string) => {
+    const target = (nameToAdd !== undefined ? nameToAdd : newGalleryCategoryInput).trim();
+    if (!target) return;
+    setCategoryError(null);
+    if (galleryCategories.some(c => c.toLowerCase() === target.toLowerCase())) {
+      setCategoryError(`Category "${target}" already exists.`);
+      setSaveStatus(`Category "${target}" already exists.`);
+      setTimeout(() => setSaveStatus(null), 3000);
+      return;
+    }
+    const updated = [...galleryCategories, target];
+    const newFormData: SiteContent = {
+      ...formData,
+      gallery: {
+        ...(formData.gallery || DEFAULT_SITE_CONTENT.gallery),
+        categories: updated
+      }
+    };
+    setFormData(newFormData);
+    onSaveContent(newFormData);
+    try {
+      localStorage.setItem('rise_rescue_site_content_v1', JSON.stringify(newFormData));
+    } catch {
+      // storage error
+    }
+    setNewGalleryCategoryInput('');
+    setSelectedUploadCategory(target);
+    setSaveStatus(`Category "${target}" created & saved!`);
+    setTimeout(() => setSaveStatus(null), 3500);
+  };
+
+  const handleRenameGalleryCategory = (oldName: string, newName: string) => {
+    const trimmed = newName.trim();
+    setCategoryError(null);
+    if (!trimmed || trimmed.toLowerCase() === oldName.toLowerCase()) {
+      setEditingCategoryIndex(null);
+      setEditingCategoryValue('');
+      return;
+    }
+    if (galleryCategories.some(c => c.toLowerCase() === trimmed.toLowerCase() && c.toLowerCase() !== oldName.toLowerCase())) {
+      setCategoryError(`Category "${trimmed}" already exists.`);
+      setSaveStatus(`Category "${trimmed}" already exists.`);
+      setTimeout(() => setSaveStatus(null), 3000);
+      return;
+    }
+    const updatedCategories = galleryCategories.map(c => c.toLowerCase() === oldName.toLowerCase() ? trimmed : c);
+    const newFormData: SiteContent = {
+      ...formData,
+      gallery: {
+        ...(formData.gallery || DEFAULT_SITE_CONTENT.gallery),
+        categories: updatedCategories
+      }
+    };
+    setFormData(newFormData);
+    onSaveContent(newFormData);
+    try {
+      localStorage.setItem('rise_rescue_site_content_v1', JSON.stringify(newFormData));
+    } catch {
+      // storage error
+    }
+
+    // Update all galleryItems that have oldName
+    let count = 0;
+    const updatedGallery = galleryItems.map(item => {
+      if ((item.category || '').toLowerCase() === oldName.toLowerCase()) {
+        count++;
+        return { ...item, category: trimmed };
+      }
+      return item;
+    });
+
+    if (count > 0) {
+      if (onUpdateGalleryItems) {
+        onUpdateGalleryItems(updatedGallery);
+      } else {
+        updatedGallery.forEach(i => onUpdatePhoto && onUpdatePhoto(i));
+      }
+      try {
+        localStorage.setItem('pawhaven_admin_gallery_photos', JSON.stringify(updatedGallery));
+      } catch {
+        // storage error
+      }
+    }
+
+    if (selectedUploadCategory.toLowerCase() === oldName.toLowerCase()) setSelectedUploadCategory(trimmed);
+    if (selectedGalleryCategoryFilter.toLowerCase() === oldName.toLowerCase()) setSelectedGalleryCategoryFilter(trimmed);
+
+    setEditingCategoryIndex(null);
+    setEditingCategoryValue('');
+    setSaveStatus(`Renamed category to "${trimmed}". Updated ${count} image(s).`);
+    setTimeout(() => setSaveStatus(null), 3500);
+  };
+
+  const handleDeleteGalleryCategory = (catToDelete: string) => {
+    if (galleryCategories.length <= 1) {
+      setCategoryError('Cannot delete: at least one category must remain.');
+      setSaveStatus('Cannot delete: at least one category must remain.');
+      setTimeout(() => setSaveStatus(null), 3000);
+      return;
+    }
+    const remaining = galleryCategories.filter(c => c.toLowerCase() !== catToDelete.toLowerCase());
+    const fallback = remaining.find(c => c.toLowerCase() === 'other') || remaining[0];
+
+    const affected = galleryItems.filter(i => (i.category || '').toLowerCase() === catToDelete.toLowerCase());
+
+    const newFormData: SiteContent = {
+      ...formData,
+      gallery: {
+        ...(formData.gallery || DEFAULT_SITE_CONTENT.gallery),
+        categories: remaining
+      }
+    };
+    setFormData(newFormData);
+    onSaveContent(newFormData);
+    try {
+      localStorage.setItem('rise_rescue_site_content_v1', JSON.stringify(newFormData));
+    } catch {
+      // storage error
+    }
+
+    if (affected.length > 0) {
+      const updatedGallery = galleryItems.map(item => {
+        if ((item.category || '').toLowerCase() === catToDelete.toLowerCase()) {
+          return { ...item, category: fallback };
+        }
+        return item;
+      });
+      if (onUpdateGalleryItems) {
+        onUpdateGalleryItems(updatedGallery);
+      } else {
+        updatedGallery.forEach(i => onUpdatePhoto && onUpdatePhoto(i));
+      }
+      try {
+        localStorage.setItem('pawhaven_admin_gallery_photos', JSON.stringify(updatedGallery));
+      } catch {
+        // storage error
+      }
+    }
+
+    if (selectedUploadCategory.toLowerCase() === catToDelete.toLowerCase()) setSelectedUploadCategory(fallback);
+    if (selectedGalleryCategoryFilter.toLowerCase() === catToDelete.toLowerCase()) setSelectedGalleryCategoryFilter('All');
+    setDeletingCategoryName(null);
+
+    setSaveStatus(`Deleted category "${catToDelete}". ${affected.length > 0 ? `Moved ${affected.length} image(s) to "${fallback}".` : ''}`);
+    setTimeout(() => setSaveStatus(null), 3500);
+  };
+
+  const handleMoveImageCategory = (photoId: string, newCategory: string) => {
+    const updated = galleryItems.map(item =>
+      item.id === photoId ? { ...item, category: newCategory } : item
+    );
+    if (onUpdateGalleryItems) {
+      onUpdateGalleryItems(updated);
+    } else if (onUpdatePhoto) {
+      const target = updated.find(i => i.id === photoId);
+      if (target) onUpdatePhoto(target);
+    }
+    try {
+      localStorage.setItem('pawhaven_admin_gallery_photos', JSON.stringify(updated));
+    } catch {
+      // storage error
+    }
+    setSaveStatus(`Moved image to "${newCategory}"`);
+    setTimeout(() => setSaveStatus(null), 2500);
+  };
+
+  const handleStartEditPhoto = (item: GalleryItem) => {
+    setEditingPhotoId(item.id);
+    setEditPhotoTitle(item.title);
+    setEditPhotoCaption(item.caption || '');
+    setEditPhotoCategory(item.category || galleryCategories[0] || 'Other');
+  };
+
+  const handleSaveEditPhoto = (photoId: string) => {
+    const updated = galleryItems.map(item => {
+      if (item.id === photoId) {
+        return {
+          ...item,
+          title: editPhotoTitle.trim() || item.title,
+          caption: editPhotoCaption.trim(),
+          category: editPhotoCategory || item.category || galleryCategories[0] || 'Other'
+        };
+      }
+      return item;
+    });
+    if (onUpdateGalleryItems) {
+      onUpdateGalleryItems(updated);
+    } else if (onUpdatePhoto) {
+      const target = updated.find(i => i.id === photoId);
+      if (target) onUpdatePhoto(target);
+    }
+    try {
+      localStorage.setItem('pawhaven_admin_gallery_photos', JSON.stringify(updated));
+    } catch {
+      // storage error
+    }
+    setEditingPhotoId(null);
+    setSaveStatus('Photo details updated!');
+    setTimeout(() => setSaveStatus(null), 2500);
+  };
+
   const handlePhotoPublish = (e: React.FormEvent) => {
     e.preventDefault();
     if (!previewImage) {
@@ -913,11 +1286,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       return;
     }
 
+    const effectiveCategory = selectedUploadCategory || galleryCategories[0] || 'Other';
+
     const newItem: GalleryItem = {
       id: `gallery-photo-${Date.now()}`,
       title: photoTitle.trim() || 'Untitled Photo',
       caption: photoCaption.trim() || '',
-      category: 'Gallery',
+      category: effectiveCategory,
       imageUrl: previewImage,
       uploadedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
       isUserUploaded: true
@@ -927,16 +1302,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setPreviewImage(null);
     setPhotoTitle('');
     setPhotoCaption('');
-    setSaveStatus('Photo published directly to Gallery!');
+    setSaveStatus(`Photo published directly to "${effectiveCategory}" in Gallery!`);
     setTimeout(() => setSaveStatus(null), 3500);
   };
 
-  const handleDeletePhotoItem = (id: string, itemTitle: string) => {
-    if (window.confirm(`Delete "${itemTitle}" from the gallery?`)) {
-      onDeletePhoto(id);
-      setSaveStatus(`Removed "${itemTitle}" from gallery.`);
-      setTimeout(() => setSaveStatus(null), 3000);
+  const handleDeletePhotoItem = (id: string, itemTitle?: string) => {
+    onDeletePhoto(id);
+    if (onUpdateGalleryItems) {
+      onUpdateGalleryItems(galleryItems.filter(item => item.id !== id));
     }
+    setDeletingPhotoId(null);
+    setSaveStatus(`Removed "${itemTitle || 'photo'}" from gallery.`);
+    setTimeout(() => setSaveStatus(null), 3000);
   };
 
   return (
@@ -2972,6 +3349,204 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
+              {/* Category Feature: Category Overview & Management Toolbar */}
+              {(() => {
+                const activeGoalCategories = Array.from(
+                  new Set(formData.goals.goals.map((g) => (g.tag || '').trim()).filter(Boolean))
+                );
+                const allAvailableGoalCategories = Array.from(
+                  new Set([...activeGoalCategories, ...customGoalCategories])
+                );
+
+                const handleBatchRename = () => {
+                  const fromCat = renameFromCategory.trim();
+                  const toCat = renameToCategory.trim();
+                  if (!fromCat || !toCat || fromCat === toCat) return;
+                  const updated = formData.goals.goals.map((g) => {
+                    if ((g.tag || '').trim() === fromCat) {
+                      return { ...g, tag: toCat };
+                    }
+                    return g;
+                  });
+                  setFormData({
+                    ...formData,
+                    goals: {
+                      ...formData.goals,
+                      goals: updated
+                    }
+                  });
+                  if (selectedGoalCategoryFilter === fromCat) {
+                    setSelectedGoalCategoryFilter(toCat);
+                  }
+                  setRenameFromCategory('');
+                  setRenameToCategory('');
+                  setSaveStatus(`Category "${fromCat}" renamed to "${toCat}" across initiatives. Click "Save & Publish" to save.`);
+                  setTimeout(() => setSaveStatus(null), 4000);
+                };
+
+                return (
+                  <div className="bg-[#F8F9FA] rounded-xl p-3 sm:p-4 border border-gray-200 space-y-3">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-[#043E49]/10 text-[#043E49] flex items-center justify-center">
+                          <Tag className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xs font-bold text-gray-900">Initiative Categories</h3>
+                            <span className="text-[10px] font-bold text-[#043E49] bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded-full">
+                              {activeGoalCategories.length} active categories
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500">Select a category to filter initiatives or click Manage to add/rename.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsManagingGoalCategories(!isManagingGoalCategories)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-2xs transition-colors cursor-pointer"
+                        >
+                          <Settings2 className="w-3.5 h-3.5 text-[#043E49]" />
+                          <span>{isManagingGoalCategories ? 'Hide Category Tools' : 'Manage & Rename'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Filter Pills */}
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedGoalCategoryFilter('all')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          selectedGoalCategoryFilter === 'all'
+                            ? 'bg-[#043E49] text-white shadow-2xs'
+                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                        }`}
+                      >
+                        <span>All Initiatives</span>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                          selectedGoalCategoryFilter === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {formData.goals.goals.length}
+                        </span>
+                      </button>
+
+                      {activeGoalCategories.map((cat) => {
+                        const count = formData.goals.goals.filter((g) => (g.tag || '').trim() === cat).length;
+                        const isSelected = selectedGoalCategoryFilter === cat;
+                        return (
+                          <button
+                            key={cat}
+                            type="button"
+                            onClick={() => setSelectedGoalCategoryFilter(isSelected ? 'all' : cat)}
+                            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                              isSelected
+                                ? 'bg-[#043E49] text-white shadow-2xs'
+                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
+                            }`}
+                          >
+                            <Tag className="w-3 h-3 opacity-70" />
+                            <span>{cat}</span>
+                            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                              isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Management Drawer */}
+                    {isManagingGoalCategories && (
+                      <div className="pt-3 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-3 animate-in fade-in duration-150">
+                        {/* Create Preset */}
+                        <div className="bg-white p-3 rounded-xl border border-gray-200 space-y-2">
+                          <label className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                            <Plus className="w-3.5 h-3.5 text-[#043E49]" />
+                            <span>Add New Category Preset</span>
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              placeholder="e.g. Stray Dog Rehabilitation"
+                              value={newCategoryPresetInput}
+                              onChange={(e) => setNewCategoryPresetInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  const trimmed = newCategoryPresetInput.trim();
+                                  if (trimmed && !customGoalCategories.includes(trimmed)) {
+                                    setCustomGoalCategories((prev) => [...prev, trimmed]);
+                                    setNewCategoryPresetInput('');
+                                  }
+                                }
+                              }}
+                              className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50 focus:bg-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const trimmed = newCategoryPresetInput.trim();
+                                if (trimmed && !customGoalCategories.includes(trimmed)) {
+                                  setCustomGoalCategories((prev) => [...prev, trimmed]);
+                                  setNewCategoryPresetInput('');
+                                }
+                              }}
+                              className="px-3 py-1.5 text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white rounded-lg transition-colors cursor-pointer shrink-0"
+                            >
+                              Add Preset
+                            </button>
+                          </div>
+                          <p className="text-[10px] text-gray-400">Presets appear inside category dropdowns across all cards.</p>
+                        </div>
+
+                        {/* Batch Rename Tool */}
+                        <div className="bg-white p-3 rounded-xl border border-gray-200 space-y-2">
+                          <label className="text-xs font-bold text-gray-800 flex items-center gap-1">
+                            <Settings2 className="w-3.5 h-3.5 text-[#043E49]" />
+                            <span>Batch Rename Category</span>
+                          </label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <select
+                              value={renameFromCategory}
+                              onChange={(e) => setRenameFromCategory(e.target.value)}
+                              className="px-2 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50 font-medium"
+                            >
+                              <option value="">Rename from...</option>
+                              {activeGoalCategories.map((c) => (
+                                <option key={c} value={c}>
+                                  {c}
+                                </option>
+                              ))}
+                            </select>
+                            <input
+                              type="text"
+                              placeholder="New name..."
+                              value={renameToCategory}
+                              onChange={(e) => setRenameToCategory(e.target.value)}
+                              className="px-2 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50 focus:bg-white"
+                            />
+                          </div>
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              disabled={!renameFromCategory || !renameToCategory.trim()}
+                              onClick={handleBatchRename}
+                              className="px-3 py-1 text-xs font-bold bg-[#009966] hover:bg-[#008055] disabled:opacity-40 disabled:pointer-events-none text-white rounded-lg transition-colors cursor-pointer"
+                            >
+                              Rename Across All Cards
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
               <div className="space-y-4">
                 {formData.goals.goals.length === 0 ? (
                   <div className="p-8 text-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 space-y-3">
@@ -3010,111 +3585,199 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </button>
                   </div>
                 ) : (
-                  formData.goals.goals.map((goal, idx) => (
-                    <div key={goal.id || idx} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full bg-[#043E49] text-white text-[11px] font-bold flex items-center justify-center">
-                            {idx + 1}
-                          </span>
-                          <h4 className="text-xs font-black text-gray-800">
-                            {goal.tag} — {goal.heading}
-                          </h4>
-                        </div>
+                  (() => {
+                    const activeGoalCategories = Array.from(
+                      new Set(formData.goals.goals.map((g) => (g.tag || '').trim()).filter(Boolean))
+                    );
+                    const allAvailableGoalCategories = Array.from(
+                      new Set([...activeGoalCategories, ...customGoalCategories])
+                    );
 
-                        <div className="flex items-center gap-1.5">
-                          {/* Reorder Up / Down */}
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              disabled={idx === 0}
-                              onClick={() => {
-                                if (idx === 0) return;
-                                const updated = [...formData.goals.goals];
-                                const [moved] = updated.splice(idx, 1);
-                                updated.splice(idx - 1, 0, moved);
-                                setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
-                              }}
-                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none text-gray-600 transition-colors cursor-pointer"
-                              title="Move Up"
-                            >
-                              <ArrowUp className="w-3 h-3" />
-                            </button>
-                            <button
-                              type="button"
-                              disabled={idx === formData.goals.goals.length - 1}
-                              onClick={() => {
-                                if (idx === formData.goals.goals.length - 1) return;
-                                const updated = [...formData.goals.goals];
-                                const [moved] = updated.splice(idx, 1);
-                                updated.splice(idx + 1, 0, moved);
-                                setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
-                              }}
-                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none text-gray-600 transition-colors cursor-pointer"
-                              title="Move Down"
-                            >
-                              <ArrowDown className="w-3 h-3" />
-                            </button>
+                    const filteredGoalEntries = formData.goals.goals
+                      .map((goal, originalIdx) => ({ goal, originalIdx }))
+                      .filter(
+                        ({ goal }) =>
+                          selectedGoalCategoryFilter === 'all' ||
+                          (goal.tag || '').trim() === selectedGoalCategoryFilter
+                      );
+
+                    if (filteredGoalEntries.length === 0) {
+                      return (
+                        <div className="p-8 text-center rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
+                          <Tag className="w-6 h-6 mx-auto text-gray-400" />
+                          <h4 className="text-xs font-bold text-gray-700">
+                            No initiatives match category "{selectedGoalCategoryFilter}"
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedGoalCategoryFilter('all')}
+                            className="px-3 py-1.5 text-xs font-bold text-[#043E49] hover:underline cursor-pointer"
+                          >
+                            View All Initiatives
+                          </button>
+                        </div>
+                      );
+                    }
+
+                    return filteredGoalEntries.map(({ goal, originalIdx: idx }) => (
+                      <div key={goal.id || idx} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-6 h-6 rounded-full bg-[#043E49] text-white text-[11px] font-bold flex items-center justify-center">
+                              {idx + 1}
+                            </span>
+                            <h4 className="text-xs font-black text-gray-800">
+                              {goal.tag} — {goal.heading}
+                            </h4>
                           </div>
 
-                          {/* Inline Delete Confirmation - No window.confirm */}
-                          {deletingGoalIndex === idx ? (
-                            <div 
-                              onClick={(e) => e.stopPropagation()}
-                              className="flex items-center gap-1.5 bg-[#FFF1F2] border border-[#FDA4AF] px-2.5 py-0.5 rounded-full shadow-xs animate-in fade-in duration-150"
-                            >
-                              <span className="text-[11px] font-bold text-[#BE123C] select-none pl-0.5">Delete?</span>
+                          <div className="flex items-center gap-1.5">
+                            {/* Reorder Up / Down */}
+                            <div className="flex items-center gap-1">
                               <button
                                 type="button"
+                                disabled={idx === 0}
                                 onClick={() => {
-                                  setFormData({
-                                    ...formData,
-                                    goals: {
-                                      ...formData.goals,
-                                      goals: formData.goals.goals.filter((_, i) => i !== idx)
-                                    }
-                                  });
-                                  setDeletingGoalIndex(null);
+                                  if (idx === 0) return;
+                                  const updated = [...formData.goals.goals];
+                                  const [moved] = updated.splice(idx, 1);
+                                  updated.splice(idx - 1, 0, moved);
+                                  setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
                                 }}
-                                className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#E11D48] hover:bg-[#BE123C] text-white transition-colors cursor-pointer shadow-xs"
+                                className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none text-gray-600 transition-colors cursor-pointer"
+                                title="Move Up"
                               >
-                                Yes
+                                <ArrowUp className="w-3 h-3" />
                               </button>
                               <button
                                 type="button"
-                                onClick={() => setDeletingGoalIndex(null)}
-                                className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#334155] transition-colors cursor-pointer"
+                                disabled={idx === formData.goals.goals.length - 1}
+                                onClick={() => {
+                                  if (idx === formData.goals.goals.length - 1) return;
+                                  const updated = [...formData.goals.goals];
+                                  const [moved] = updated.splice(idx, 1);
+                                  updated.splice(idx + 1, 0, moved);
+                                  setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
+                                }}
+                                className="p-1.5 rounded-lg border border-gray-200 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none text-gray-600 transition-colors cursor-pointer"
+                                title="Move Down"
                               >
-                                Cancel
+                                <ArrowDown className="w-3 h-3" />
                               </button>
                             </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => setDeletingGoalIndex(idx)}
-                              className="p-1.5 rounded-lg border border-gray-200 hover:bg-rose-50 text-gray-400 hover:text-rose-600 transition-colors cursor-pointer"
-                              title="Delete this initiative card"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Tag</label>
-                          <input
-                            type="text"
-                            value={goal.tag}
-                            onChange={(e) => {
-                              const updated = [...formData.goals.goals];
-                              updated[idx].tag = e.target.value;
-                              setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
-                            }}
-                            className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs"
-                          />
+                            {/* Inline Delete Confirmation - No window.confirm */}
+                            {deletingGoalIndex === idx ? (
+                              <div 
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-1.5 bg-[#FFF1F2] border border-[#FDA4AF] px-2.5 py-0.5 rounded-full shadow-xs animate-in fade-in duration-150"
+                              >
+                                <span className="text-[11px] font-bold text-[#BE123C] select-none pl-0.5">Delete?</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({
+                                      ...formData,
+                                      goals: {
+                                        ...formData.goals,
+                                        goals: formData.goals.goals.filter((_, i) => i !== idx)
+                                      }
+                                    });
+                                    setDeletingGoalIndex(null);
+                                  }}
+                                  className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#E11D48] hover:bg-[#BE123C] text-white transition-colors cursor-pointer shadow-xs"
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingGoalIndex(null)}
+                                  className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#334155] transition-colors cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setDeletingGoalIndex(idx)}
+                                className="p-1.5 rounded-lg border border-gray-200 hover:bg-rose-50 text-gray-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                title="Delete this initiative card"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {/* Category Selector with dropdown, manual input, and chips */}
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1">
+                                <Tag className="w-3 h-3 text-[#043E49]" />
+                                <span>Category</span>
+                              </label>
+                              <span className="text-[10px] font-semibold text-[#043E49] bg-teal-50 border border-teal-200/60 px-1.5 py-0.2 rounded">
+                                {goal.tag || 'Unassigned'}
+                              </span>
+                            </div>
+
+                            <select
+                              value={allAvailableGoalCategories.includes(goal.tag) ? goal.tag : '__custom__'}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val !== '__custom__') {
+                                  const updated = [...formData.goals.goals];
+                                  updated[idx].tag = val;
+                                  setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
+                                }
+                              }}
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-800 cursor-pointer focus:border-[#043E49] focus:ring-1 focus:ring-[#043E49]"
+                            >
+                              <optgroup label="Select Category">
+                                {allAvailableGoalCategories.map((cat) => (
+                                  <option key={cat} value={cat}>
+                                    {cat}
+                                  </option>
+                                ))}
+                              </optgroup>
+                              <option value="__custom__">Custom / Type Manually...</option>
+                            </select>
+
+                            <input
+                              type="text"
+                              value={goal.tag}
+                              onChange={(e) => {
+                                const updated = [...formData.goals.goals];
+                                updated[idx].tag = e.target.value;
+                                setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
+                              }}
+                              placeholder="Or type custom category name"
+                              className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs text-gray-700 focus:bg-white"
+                            />
+
+                            <div className="flex flex-wrap gap-1 pt-0.5">
+                              {['Land & Habitats', 'Advanced Medicine', 'Wildlife Rehabilitation', 'Eco-Mobility', 'Solar Sanctuary'].map((chip) => (
+                                <button
+                                  key={chip}
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = [...formData.goals.goals];
+                                    updated[idx].tag = chip;
+                                    setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
+                                  }}
+                                  className={`text-[10px] px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
+                                    goal.tag === chip
+                                      ? 'bg-[#043E49] text-white font-bold'
+                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  }`}
+                                >
+                                  {chip}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         <div>
                           <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Heading</label>
                           <input
@@ -3153,8 +3816,31 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           </div>
 
                           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
-                            {/* 16:9 Thumbnail with Crop Overlay */}
-                            <div className="relative w-full sm:w-52 aspect-16/9 rounded-lg overflow-hidden bg-gray-900 border border-gray-200 shadow-inner group shrink-0">
+                            {/* 16:9 Thumbnail with Drag & Drop from PC & Crop Overlay */}
+                            <div 
+                              className="relative w-full sm:w-52 aspect-16/9 rounded-lg overflow-hidden bg-gray-900 border-2 border-dashed border-gray-300 hover:border-[#043E49] shadow-inner group shrink-0 transition-colors cursor-pointer"
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const files = e.dataTransfer.files;
+                                if (!files || files.length === 0) return;
+                                const file = files[0];
+                                if (!file.type.startsWith('image/')) return;
+                                const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  const dataUrl = ev.target?.result as string;
+                                  if (dataUrl) {
+                                    openCropModal(dataUrl, idx, cleanName || goal.heading, 'goal');
+                                  }
+                                };
+                                reader.readAsDataURL(file);
+                              }}
+                            >
                               <img
                                 src={goal.imageUrl}
                                 alt={goal.heading}
@@ -3163,55 +3849,60 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                   (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80';
                                 }}
                               />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1.5 p-2 text-center">
                                 <button
                                   type="button"
                                   onClick={() => openCropModal(goal.imageUrl, idx, goal.heading, 'goal')}
-                                  className="px-2.5 py-1.5 rounded-lg bg-white/95 hover:bg-white text-gray-900 text-xs font-bold flex items-center gap-1 shadow-md transition-all active:scale-95 cursor-pointer"
+                                  className="px-3 py-1.5 rounded-lg bg-white/95 hover:bg-white text-gray-900 text-xs font-bold flex items-center gap-1.5 shadow-md transition-all active:scale-95 cursor-pointer"
                                   title="Crop & reposition this image"
                                 >
                                   <Crop className="w-3.5 h-3.5 text-[#043E49]" />
-                                  <span>Crop Photo</span>
+                                  <span>Resize & Crop</span>
                                 </button>
+                                <span className="text-[10px] text-white/80 font-medium">Or drop image here</span>
                               </div>
                             </div>
 
                             {/* Control Panel: Upload, Crop, and URL */}
                             <div className="flex-1 space-y-2.5 w-full">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#043E49] hover:bg-[#032f38] cursor-pointer transition-colors shadow-2xs">
+                                <label 
+                                  htmlFor={`goal-pc-upload-${idx}`}
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold text-white bg-[#043E49] hover:bg-[#032f38] active:scale-95 cursor-pointer transition-all shadow-2xs select-none"
+                                >
                                   <Upload className="w-3.5 h-3.5" />
-                                  <span>Upload New Photo</span>
-                                  <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                      const files = e.target.files;
-                                      if (!files || files.length === 0) return;
-                                      const file = files[0];
-                                      const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-                                      const reader = new FileReader();
-                                      reader.onload = (ev) => {
-                                        const dataUrl = ev.target?.result as string;
-                                        if (dataUrl) {
-                                          openCropModal(dataUrl, idx, cleanName || goal.heading, 'goal');
-                                        }
-                                      };
-                                      reader.readAsDataURL(file);
-                                      if (e.target) e.target.value = '';
-                                    }}
-                                    className="hidden"
-                                  />
+                                  <span>Upload from PC & Crop</span>
                                 </label>
+                                <input
+                                  id={`goal-pc-upload-${idx}`}
+                                  type="file"
+                                  accept="image/*,image/jpeg,image/png,image/webp,image/jpg"
+                                  onChange={(e) => {
+                                    const files = e.target.files;
+                                    if (!files || files.length === 0) return;
+                                    const file = files[0];
+                                    const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => {
+                                      const dataUrl = ev.target?.result as string;
+                                      if (dataUrl) {
+                                        openCropModal(dataUrl, idx, cleanName || goal.heading, 'goal');
+                                      }
+                                    };
+                                    reader.readAsDataURL(file);
+                                    e.target.value = '';
+                                  }}
+                                  className="sr-only"
+                                />
 
                                 <button
                                   type="button"
                                   onClick={() => openCropModal(goal.imageUrl, idx, goal.heading, 'goal')}
-                                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 cursor-pointer transition-colors shadow-2xs"
+                                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 cursor-pointer transition-colors shadow-2xs"
                                   title="Crop and position the framing"
                                 >
                                   <Crop className="w-3.5 h-3.5 text-teal-700" />
-                                  <span>Crop & Position</span>
+                                  <span>Resize & Crop</span>
                                 </button>
                               </div>
 
@@ -3239,8 +3930,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         </div>
                       </div>
                     </div>
-                  ))
-                )}
+                  ));
+                })()
+              )}
               </div>
             </div>
           </div>
@@ -3290,6 +3982,208 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
             </div>
 
+            {/* Category Management */}
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <Tag className="w-5 h-5 text-[#043E49]" />
+                  <div>
+                    <h2 className="text-base font-black text-[#1A1A1A]">Category Management</h2>
+                    <p className="text-xs text-gray-500">
+                      Create, rename, and manage categories. Changes automatically update on the live website.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 self-start sm:self-auto">
+                  {galleryCategories.length} {galleryCategories.length === 1 ? 'Category' : 'Categories'}
+                </span>
+              </div>
+
+              {categoryError && (
+                <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-semibold flex items-center justify-between animate-in fade-in">
+                  <span>{categoryError}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setCategoryError(null)} 
+                    className="text-rose-500 hover:text-rose-800 text-xs font-bold underline cursor-pointer"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
+
+              {/* Add New Category Input */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Enter new category name (e.g. Events, Animals, Projects, Rescues)..."
+                    value={newGalleryCategoryInput}
+                    onChange={(e) => setNewGalleryCategoryInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddGalleryCategory();
+                      }
+                    }}
+                    className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-200 text-xs focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49]"
+                  />
+                  <FolderPlus className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleAddGalleryCategory()}
+                  disabled={!newGalleryCategoryInput.trim()}
+                  className="px-4 py-2 rounded-lg text-xs font-bold bg-[#043E49] hover:bg-[#032f38] disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Category</span>
+                </button>
+              </div>
+
+              {/* Categories Grid */}
+              <div className="pt-2">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">
+                  Existing Categories & Pictures
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                  {galleryCategories.map((cat, idx) => {
+                    const count = galleryItems.filter(item => (item.category || '').toLowerCase() === cat.toLowerCase()).length;
+                    const isEditing = editingCategoryIndex === idx;
+
+                    return (
+                      <div
+                        key={cat}
+                        className="flex items-center justify-between p-2.5 rounded-xl border border-gray-200 bg-gray-50/60 hover:bg-white hover:border-[#043E49]/30 transition-all shadow-2xs gap-2"
+                      >
+                        {isEditing ? (
+                          <div className="flex items-center gap-1.5 w-full">
+                            <input
+                              type="text"
+                              autoFocus
+                              value={editingCategoryValue}
+                              onChange={(e) => setEditingCategoryValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  handleRenameGalleryCategory(cat, editingCategoryValue);
+                                } else if (e.key === 'Escape') {
+                                  setEditingCategoryIndex(null);
+                                  setEditingCategoryValue('');
+                                }
+                              }}
+                              className="flex-1 px-2 py-1 rounded border border-[#043E49] text-xs font-bold bg-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleRenameGalleryCategory(cat, editingCategoryValue)}
+                              title="Save renamed category"
+                              className="p-1 rounded bg-[#043E49] text-white hover:bg-[#032f38] cursor-pointer"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingCategoryIndex(null);
+                                setEditingCategoryValue('');
+                              }}
+                              title="Cancel"
+                              className="p-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 cursor-pointer"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <span className="w-2 h-2 rounded-full bg-[#043E49] shrink-0" />
+                              <span className="text-xs font-bold text-[#1A1A1A] truncate" title={cat}>
+                                {cat}
+                              </span>
+                              <span className="text-[10px] font-semibold px-1.5 py-0.2 rounded-full bg-white text-gray-600 border border-gray-200 shrink-0">
+                                {count} {count === 1 ? 'img' : 'imgs'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingCategoryIndex(idx);
+                                  setEditingCategoryValue(cat);
+                                }}
+                                title={`Rename "${cat}"`}
+                                className="p-1 rounded hover:bg-white text-gray-500 hover:text-[#043E49] transition-colors cursor-pointer border border-transparent hover:border-gray-200"
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                              {deletingCategoryName === cat ? (
+                                <div 
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center gap-1 bg-[#FFF1F2] border border-[#FDA4AF] px-1.5 py-0.5 rounded-lg shadow-xs animate-in fade-in duration-150"
+                                >
+                                  <span className="text-[10px] font-bold text-[#BE123C] select-none">Delete?</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteGalleryCategory(cat)}
+                                    className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E11D48] hover:bg-[#BE123C] text-white transition-colors cursor-pointer shadow-xs"
+                                  >
+                                    Yes
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeletingCategoryName(null)}
+                                    className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#334155] transition-colors cursor-pointer"
+                                  >
+                                    No
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingCategoryName(cat)}
+                                  disabled={galleryCategories.length <= 1}
+                                  title={galleryCategories.length <= 1 ? "At least one category must remain" : `Delete "${cat}"`}
+                                  className="p-1 rounded hover:bg-rose-50 text-gray-400 hover:text-rose-600 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed border border-transparent hover:border-rose-200"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Save & Publish bar for Category Management */}
+              <div className="pt-3 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <p className="text-xs text-gray-500">
+                  Save and publish all category changes to the live website.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white shadow-2xs transition-all cursor-pointer disabled:opacity-50 self-end sm:self-auto"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Publishing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save & Publish</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
             {/* Upload New Picture to Gallery */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-4">
               <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
@@ -3297,7 +4191,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <div>
                   <h2 className="text-base font-black text-[#1A1A1A]">Upload New Picture to Gallery</h2>
                   <p className="text-xs text-gray-500">
-                    Uploaded photos appear instantly on the public Gallery page.
+                    Uploaded photos appear instantly on the public Gallery page under their selected category.
                   </p>
                 </div>
               </div>
@@ -3335,16 +4229,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                           className="max-h-56 w-auto object-contain bg-black/5"
                         />
                       </div>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPreviewImage(null);
-                        }}
-                        className="text-xs text-rose-600 hover:underline font-bold cursor-pointer"
-                      >
-                        Change Picture
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openCropModal(previewImage, null, photoTitle || 'Gallery photo', 'gallery', null);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] shadow-2xs transition-all cursor-pointer"
+                        >
+                          <Crop className="w-3.5 h-3.5" />
+                          <span>Resize & Crop</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewImage(null);
+                          }}
+                          className="text-xs text-rose-600 hover:underline font-bold cursor-pointer"
+                        >
+                          Change Picture
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center gap-2">
@@ -3363,7 +4270,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">Picture Title / Heading</label>
                     <input
@@ -3374,7 +4281,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                       className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49]"
                     />
                   </div>
+
                   <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1 flex items-center gap-1">
+                      <Tag className="w-3 h-3 text-[#043E49]" />
+                      <span>Category</span>
+                    </label>
+                    <select
+                      value={selectedUploadCategory || galleryCategories[0] || 'Other'}
+                      onChange={(e) => setSelectedUploadCategory(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs font-bold text-gray-800 bg-white focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49] cursor-pointer"
+                    >
+                      {galleryCategories.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-2 lg:col-span-1">
                     <label className="block text-xs font-bold text-gray-700 mb-1">Caption / Description (Optional)</label>
                     <input
                       type="text"
@@ -3401,64 +4325,258 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
             {/* Currently Uploaded Photos */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-gray-100">
                 <div>
                   <h2 className="text-base font-black text-[#1A1A1A]">Pictures in Gallery ({galleryItems.length})</h2>
                   <p className="text-xs text-gray-500">Live pictures visible to every visitor on the Gallery page.</p>
                 </div>
+
+                {/* Category Filter Pills for Admin */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full scrollbar-none">
+                  {['All', ...galleryCategories].map((cat) => {
+                    const isSelected = selectedGalleryCategoryFilter.toLowerCase() === cat.toLowerCase();
+                    const count = cat === 'All'
+                      ? galleryItems.length
+                      : galleryItems.filter(item => (item.category || '').toLowerCase() === cat.toLowerCase()).length;
+
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setSelectedGalleryCategoryFilter(cat)}
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                          isSelected
+                            ? 'bg-[#043E49] text-white shadow-2xs'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        <span>{cat}</span>
+                        <span className={`text-[9px] px-1.5 py-0.1 rounded-full ${
+                          isSelected ? 'bg-white/20 text-white' : 'bg-white text-gray-600'
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              {galleryItems.length === 0 ? (
+              {adminFilteredGalleryItems.length === 0 ? (
                 <div className="p-8 border border-dashed border-gray-200 rounded-xl text-center text-gray-400">
                   <ImageIcon className="w-8 h-8 mx-auto text-gray-300 mb-1.5" />
-                  <p className="text-xs sm:text-sm font-bold text-gray-600">No pictures in the gallery</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">Upload a picture above to display it on the Gallery page.</p>
+                  <p className="text-xs sm:text-sm font-bold text-gray-600">
+                    {galleryItems.length === 0 ? 'No pictures in the gallery' : `No pictures in "${selectedGalleryCategoryFilter}"`}
+                  </p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    {galleryItems.length === 0 ? 'Upload a picture above to display it on the Gallery page.' : 'Select another category filter or upload a photo to this category.'}
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {galleryItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between"
-                    >
-                      <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
-                        <img
-                          src={item.imageUrl}
-                          alt={item.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute top-2 right-2">
-                          <button
-                            onClick={() => handleDeletePhotoItem(item.id, item.title)}
-                            aria-label="Delete photo from gallery"
-                            className="p-1.5 rounded-lg bg-white/90 hover:bg-rose-50 text-rose-600 shadow-xs transition-colors cursor-pointer"
-                            title="Delete from gallery"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
+                  {adminFilteredGalleryItems.map((item) => {
+                    const isEditingThisPhoto = editingPhotoId === item.id;
 
-                      <div className="p-3 flex flex-col justify-between flex-1">
-                        <div>
-                          <h4 className="font-bold text-xs sm:text-sm text-[#1A1A1A] line-clamp-1">
-                            {item.title}
-                          </h4>
-                          {item.caption && (
-                            <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5">
-                              {item.caption}
-                            </p>
+                    return (
+                      <div
+                        key={item.id}
+                        className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between"
+                      >
+                        <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.title}
+                            className="w-full h-full object-cover"
+                          />
+
+                          {/* Category Badge on Image Thumbnail */}
+                          <div className="absolute top-2 left-2 z-10">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-[#043E49]/90 backdrop-blur-xs px-2 py-0.5 rounded-md shadow-xs">
+                              <Tag className="w-2.5 h-2.5" />
+                              <span>{item.category || 'Other'}</span>
+                            </span>
+                          </div>
+
+                          {/* Quick Actions in top-right */}
+                          <div className="absolute top-2 right-2 flex items-center gap-1.5 z-10">
+                            {/* Resize Button */}
+                            <button
+                              type="button"
+                              onClick={() => openCropModal(item.imageUrl, null, item.title, 'gallery', item.id)}
+                              aria-label="Resize and crop photo"
+                              className="px-2 py-1 rounded-lg bg-white/95 hover:bg-[#043E49] text-gray-700 hover:text-white shadow-xs transition-colors cursor-pointer flex items-center gap-1 text-[10px] font-bold"
+                              title="Resize / Crop Photo"
+                            >
+                              <Crop className="w-3.5 h-3.5" />
+                              <span>Resize</span>
+                            </button>
+
+                            {/* Delete Button with Inline Confirmation (No window.confirm) */}
+                            {deletingPhotoId === item.id ? (
+                              <div 
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex items-center gap-1.5 bg-[#FFF1F2] border border-[#FDA4AF] px-2 py-0.5 rounded-lg shadow-xs animate-in fade-in duration-150"
+                              >
+                                <span className="text-[10px] font-bold text-[#BE123C] select-none">Delete?</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeletePhotoItem(item.id, item.title)}
+                                  className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#E11D48] hover:bg-[#BE123C] text-white transition-colors cursor-pointer shadow-xs"
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeletingPhotoId(null)}
+                                  className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#E2E8F0] hover:bg-[#CBD5E1] text-[#334155] transition-colors cursor-pointer"
+                                >
+                                  No
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setDeletingPhotoId(item.id)}
+                                aria-label="Delete photo from gallery"
+                                className="p-1.5 rounded-lg bg-white/95 hover:bg-rose-50 text-rose-600 shadow-xs transition-colors cursor-pointer"
+                                title="Delete from gallery"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-3.5 flex flex-col justify-between flex-1 gap-2.5">
+                          {isEditingThisPhoto ? (
+                            <div className="space-y-2">
+                              <div>
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">Title</label>
+                                <input
+                                  type="text"
+                                  value={editPhotoTitle}
+                                  onChange={(e) => setEditPhotoTitle(e.target.value)}
+                                  className="w-full px-2 py-1 text-xs border border-gray-200 rounded-md font-bold text-gray-900 focus:ring-1 focus:ring-[#043E49]"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">Category</label>
+                                <select
+                                  value={editPhotoCategory}
+                                  onChange={(e) => setEditPhotoCategory(e.target.value)}
+                                  className="w-full px-2 py-1 text-xs border border-gray-200 rounded-md font-bold text-gray-800 bg-white focus:ring-1 focus:ring-[#043E49] cursor-pointer"
+                                >
+                                  {galleryCategories.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">Caption (Optional)</label>
+                                <input
+                                  type="text"
+                                  value={editPhotoCaption}
+                                  onChange={(e) => setEditPhotoCaption(e.target.value)}
+                                  className="w-full px-2 py-1 text-xs border border-gray-200 rounded-md text-gray-600 focus:ring-1 focus:ring-[#043E49]"
+                                />
+                              </div>
+                              <div className="flex items-center justify-end gap-1.5 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setEditingPhotoId(null)}
+                                  className="px-2.5 py-1 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveEditPhoto(item.id)}
+                                  className="px-3 py-1 text-xs font-bold text-white bg-[#043E49] hover:bg-[#032f38] rounded-md shadow-2xs cursor-pointer"
+                                >
+                                  Save
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div>
+                                <div className="flex items-start justify-between gap-1.5">
+                                  <h4 className="font-bold text-xs sm:text-sm text-[#1A1A1A] line-clamp-1 flex-1" title={item.title}>
+                                    {item.title}
+                                  </h4>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStartEditPhoto(item)}
+                                    className="p-1 text-gray-400 hover:text-[#043E49] hover:bg-gray-100 rounded transition-colors cursor-pointer shrink-0"
+                                    title="Edit photo details"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                  </button>
+                                </div>
+                                {item.caption && (
+                                  <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5">
+                                    {item.caption}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Category Switcher Dropdown (Move to another category) */}
+                              <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-2">
+                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                                  <Tag className="w-3 h-3 text-[#043E49]" />
+                                  <span>Category:</span>
+                                </span>
+                                <select
+                                  value={item.category || galleryCategories[0] || 'Other'}
+                                  onChange={(e) => handleMoveImageCategory(item.id, e.target.value)}
+                                  aria-label={`Change category for ${item.title}`}
+                                  className="text-xs px-2 py-1 rounded-md border border-gray-200 bg-gray-50 hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#043E49] font-bold text-gray-700 cursor-pointer transition-colors max-w-[150px]"
+                                >
+                                  {galleryCategories.map(cat => (
+                                    <option key={cat} value={cat}>{cat}</option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1">
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-2.5 h-2.5" />
+                                  <span>Uploaded {item.uploadedAt}</span>
+                                </div>
+                              </div>
+                            </>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 text-[10px] text-gray-400 pt-2 mt-1.5 border-t border-gray-100">
-                          <Clock className="w-2.5 h-2.5" />
-                          <span>Uploaded {item.uploadedAt}</span>
-                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
+
+              {/* Bottom Card Save & Publish Bar */}
+              <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <p className="text-xs text-gray-500">
+                  Click <strong className="text-gray-700">Save & Publish</strong> to save all photo and category changes to the live site.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white shadow-2xs transition-all cursor-pointer disabled:opacity-50 self-end sm:self-auto"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>Publishing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save & Publish</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}

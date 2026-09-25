@@ -13,6 +13,7 @@ import { StoryPage } from './components/StoryPage';
 import { Footer } from './components/Footer';
 import { CAROUSEL_SLIDES } from './data/carouselData';
 import { CarouselSlide, DonationSubmission, GalleryItem } from './types';
+import { INITIAL_GALLERY_ITEMS } from './data/galleryData';
 import { 
   SiteContent, 
   loadSiteContent, 
@@ -70,13 +71,14 @@ export default function App() {
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(() => {
     try {
       const saved = localStorage.getItem('pawhaven_admin_gallery_photos');
-      if (saved) {
-        return JSON.parse(saved);
+      if (saved !== null) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
       }
     } catch {
       // ignore parse errors
     }
-    return [];
+    return INITIAL_GALLERY_ITEMS;
   });
 
   useEffect(() => {
@@ -93,6 +95,14 @@ export default function App() {
 
   const handleDeletePhoto = (id: string) => {
     setGalleryItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleUpdateGalleryItems = (items: GalleryItem[]) => {
+    setGalleryItems(items);
+  };
+
+  const handleUpdatePhoto = (updatedItem: GalleryItem) => {
+    setGalleryItems((prev) => prev.map((item) => item.id === updatedItem.id ? updatedItem : item));
   };
 
   const handleSaveContent = (newContent: SiteContent) => {
@@ -226,6 +236,8 @@ export default function App() {
         galleryItems={galleryItems}
         onAddPhoto={handleAddPhoto}
         onDeletePhoto={handleDeletePhoto}
+        onUpdateGalleryItems={handleUpdateGalleryItems}
+        onUpdatePhoto={handleUpdatePhoto}
         onViewGallery={handleNavigateGallery}
         onBackToHome={handleNavigateHome}
       />

@@ -164,6 +164,7 @@ export interface GalleryContent {
   pageTitle: string;
   emptyStateHeading: string;
   emptyStateDescription: string;
+  categories: string[];
 }
 
 // --- Complete Site Content Tree ---
@@ -458,7 +459,8 @@ export const DEFAULT_SITE_CONTENT: SiteContent = {
   gallery: {
     pageTitle: 'Gallery',
     emptyStateHeading: 'No pictures uploaded yet',
-    emptyStateDescription: 'Check back soon for photo updates from our animal sanctuary and rescue missions.'
+    emptyStateDescription: 'Check back soon for photo updates from our animal sanctuary and rescue missions.',
+    categories: ['Sanctuary Life', 'Feline Care', 'Wildlife Rehabilitation', 'Veterinary Care', 'Events', 'Projects', 'Other']
   }
 };
 
@@ -470,6 +472,18 @@ export function loadSiteContent(): SiteContent {
     if (raw) {
       const parsed = JSON.parse(raw);
       // Merge with default in case of schema updates
+      const savedCategories = (parsed.gallery && Array.isArray(parsed.gallery.categories) && parsed.gallery.categories.length > 0)
+        ? parsed.gallery.categories
+        : DEFAULT_SITE_CONTENT.gallery.categories;
+
+      const mergedCategories = Array.from(new Set([
+        ...savedCategories,
+        'Sanctuary Life',
+        'Feline Care',
+        'Wildlife Rehabilitation',
+        'Veterinary Care'
+      ]));
+
       return {
         ...DEFAULT_SITE_CONTENT,
         ...parsed,
@@ -506,7 +520,8 @@ export function loadSiteContent(): SiteContent {
         },
         gallery: {
           ...DEFAULT_SITE_CONTENT.gallery,
-          ...(parsed.gallery || {})
+          ...(parsed.gallery || {}),
+          categories: mergedCategories
         }
       };
     }

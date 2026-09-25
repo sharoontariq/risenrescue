@@ -67,22 +67,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDiscardChanges = () => {
-    if (window.confirm('Discard all unsaved changes and reload last saved version?')) {
-      setDraftContent(currentContent);
-      setDraftGallery(galleryItems);
-      setHasUnsavedChanges(false);
-    }
+    setDraftContent(currentContent);
+    setDraftGallery(galleryItems);
+    setHasUnsavedChanges(false);
   };
 
   const handleResetToDefault = () => {
-    if (
-      window.confirm(
-        'Are you sure you want to reset all site content back to the original default template? Any customized changes will be overwritten.'
-      )
-    ) {
-      setDraftContent(DEFAULT_SITE_CONTENT);
-      setHasUnsavedChanges(true);
-    }
+    setDraftContent(DEFAULT_SITE_CONTENT);
+    setHasUnsavedChanges(true);
   };
 
   return (
