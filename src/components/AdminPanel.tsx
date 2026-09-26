@@ -119,24 +119,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [deletingHeroSlideIndex, setDeletingHeroSlideIndex] = useState<number | null>(null);
   const [deletingGoalIndex, setDeletingGoalIndex] = useState<number | null>(null);
 
-  // Goal Category Feature State
-  const [selectedGoalCategoryFilter, setSelectedGoalCategoryFilter] = useState<string>('all');
-  const [isManagingGoalCategories, setIsManagingGoalCategories] = useState(false);
-  const [newCategoryPresetInput, setNewCategoryPresetInput] = useState('');
-  const [customGoalCategories, setCustomGoalCategories] = useState<string[]>([
-    'Land & Habitats',
-    'Advanced Medicine',
-    'Rapid Rescue & Extraction',
-    'Wildlife Rehabilitation',
-    'Eco-Mobility',
-    'Solar & Clean Energy',
-    'Education & Youth',
-    'Emergency Network',
-    'Sanctuary Stewardship'
-  ]);
-  const [renameFromCategory, setRenameFromCategory] = useState('');
-  const [renameToCategory, setRenameToCategory] = useState('');
-
   // Saving state & Simple Notification Modal state
   const [isSaving, setIsSaving] = useState(false);
   const [showSaveAlertModal, setShowSaveAlertModal] = useState(false);
@@ -3349,204 +3331,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 </div>
               </div>
 
-              {/* Category Feature: Category Overview & Management Toolbar */}
-              {(() => {
-                const activeGoalCategories = Array.from(
-                  new Set(formData.goals.goals.map((g) => (g.tag || '').trim()).filter(Boolean))
-                );
-                const allAvailableGoalCategories = Array.from(
-                  new Set([...activeGoalCategories, ...customGoalCategories])
-                );
-
-                const handleBatchRename = () => {
-                  const fromCat = renameFromCategory.trim();
-                  const toCat = renameToCategory.trim();
-                  if (!fromCat || !toCat || fromCat === toCat) return;
-                  const updated = formData.goals.goals.map((g) => {
-                    if ((g.tag || '').trim() === fromCat) {
-                      return { ...g, tag: toCat };
-                    }
-                    return g;
-                  });
-                  setFormData({
-                    ...formData,
-                    goals: {
-                      ...formData.goals,
-                      goals: updated
-                    }
-                  });
-                  if (selectedGoalCategoryFilter === fromCat) {
-                    setSelectedGoalCategoryFilter(toCat);
-                  }
-                  setRenameFromCategory('');
-                  setRenameToCategory('');
-                  setSaveStatus(`Category "${fromCat}" renamed to "${toCat}" across initiatives. Click "Save & Publish" to save.`);
-                  setTimeout(() => setSaveStatus(null), 4000);
-                };
-
-                return (
-                  <div className="bg-[#F8F9FA] rounded-xl p-3 sm:p-4 border border-gray-200 space-y-3">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-[#043E49]/10 text-[#043E49] flex items-center justify-center">
-                          <Tag className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-xs font-bold text-gray-900">Initiative Categories</h3>
-                            <span className="text-[10px] font-bold text-[#043E49] bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded-full">
-                              {activeGoalCategories.length} active categories
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-gray-500">Select a category to filter initiatives or click Manage to add/rename.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setIsManagingGoalCategories(!isManagingGoalCategories)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-2xs transition-colors cursor-pointer"
-                        >
-                          <Settings2 className="w-3.5 h-3.5 text-[#043E49]" />
-                          <span>{isManagingGoalCategories ? 'Hide Category Tools' : 'Manage & Rename'}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Filter Pills */}
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedGoalCategoryFilter('all')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                          selectedGoalCategoryFilter === 'all'
-                            ? 'bg-[#043E49] text-white shadow-2xs'
-                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                        }`}
-                      >
-                        <span>All Initiatives</span>
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                          selectedGoalCategoryFilter === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {formData.goals.goals.length}
-                        </span>
-                      </button>
-
-                      {activeGoalCategories.map((cat) => {
-                        const count = formData.goals.goals.filter((g) => (g.tag || '').trim() === cat).length;
-                        const isSelected = selectedGoalCategoryFilter === cat;
-                        return (
-                          <button
-                            key={cat}
-                            type="button"
-                            onClick={() => setSelectedGoalCategoryFilter(isSelected ? 'all' : cat)}
-                            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                              isSelected
-                                ? 'bg-[#043E49] text-white shadow-2xs'
-                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                            }`}
-                          >
-                            <Tag className="w-3 h-3 opacity-70" />
-                            <span>{cat}</span>
-                            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                              isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
-                            }`}>
-                              {count}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Management Drawer */}
-                    {isManagingGoalCategories && (
-                      <div className="pt-3 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-3 animate-in fade-in duration-150">
-                        {/* Create Preset */}
-                        <div className="bg-white p-3 rounded-xl border border-gray-200 space-y-2">
-                          <label className="text-xs font-bold text-gray-800 flex items-center gap-1">
-                            <Plus className="w-3.5 h-3.5 text-[#043E49]" />
-                            <span>Add New Category Preset</span>
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              placeholder="e.g. Stray Dog Rehabilitation"
-                              value={newCategoryPresetInput}
-                              onChange={(e) => setNewCategoryPresetInput(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault();
-                                  const trimmed = newCategoryPresetInput.trim();
-                                  if (trimmed && !customGoalCategories.includes(trimmed)) {
-                                    setCustomGoalCategories((prev) => [...prev, trimmed]);
-                                    setNewCategoryPresetInput('');
-                                  }
-                                }
-                              }}
-                              className="flex-1 px-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50 focus:bg-white"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const trimmed = newCategoryPresetInput.trim();
-                                if (trimmed && !customGoalCategories.includes(trimmed)) {
-                                  setCustomGoalCategories((prev) => [...prev, trimmed]);
-                                  setNewCategoryPresetInput('');
-                                }
-                              }}
-                              className="px-3 py-1.5 text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white rounded-lg transition-colors cursor-pointer shrink-0"
-                            >
-                              Add Preset
-                            </button>
-                          </div>
-                          <p className="text-[10px] text-gray-400">Presets appear inside category dropdowns across all cards.</p>
-                        </div>
-
-                        {/* Batch Rename Tool */}
-                        <div className="bg-white p-3 rounded-xl border border-gray-200 space-y-2">
-                          <label className="text-xs font-bold text-gray-800 flex items-center gap-1">
-                            <Settings2 className="w-3.5 h-3.5 text-[#043E49]" />
-                            <span>Batch Rename Category</span>
-                          </label>
-                          <div className="grid grid-cols-2 gap-2">
-                            <select
-                              value={renameFromCategory}
-                              onChange={(e) => setRenameFromCategory(e.target.value)}
-                              className="px-2 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50 font-medium"
-                            >
-                              <option value="">Rename from...</option>
-                              {activeGoalCategories.map((c) => (
-                                <option key={c} value={c}>
-                                  {c}
-                                </option>
-                              ))}
-                            </select>
-                            <input
-                              type="text"
-                              placeholder="New name..."
-                              value={renameToCategory}
-                              onChange={(e) => setRenameToCategory(e.target.value)}
-                              className="px-2 py-1.5 text-xs rounded-lg border border-gray-200 bg-gray-50 focus:bg-white"
-                            />
-                          </div>
-                          <div className="flex justify-end">
-                            <button
-                              type="button"
-                              disabled={!renameFromCategory || !renameToCategory.trim()}
-                              onClick={handleBatchRename}
-                              className="px-3 py-1 text-xs font-bold bg-[#009966] hover:bg-[#008055] disabled:opacity-40 disabled:pointer-events-none text-white rounded-lg transition-colors cursor-pointer"
-                            >
-                              Rename Across All Cards
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-
               <div className="space-y-4">
                 {formData.goals.goals.length === 0 ? (
                   <div className="p-8 text-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 space-y-3">
@@ -3585,42 +3369,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </button>
                   </div>
                 ) : (
-                  (() => {
-                    const activeGoalCategories = Array.from(
-                      new Set(formData.goals.goals.map((g) => (g.tag || '').trim()).filter(Boolean))
-                    );
-                    const allAvailableGoalCategories = Array.from(
-                      new Set([...activeGoalCategories, ...customGoalCategories])
-                    );
-
-                    const filteredGoalEntries = formData.goals.goals
-                      .map((goal, originalIdx) => ({ goal, originalIdx }))
-                      .filter(
-                        ({ goal }) =>
-                          selectedGoalCategoryFilter === 'all' ||
-                          (goal.tag || '').trim() === selectedGoalCategoryFilter
-                      );
-
-                    if (filteredGoalEntries.length === 0) {
-                      return (
-                        <div className="p-8 text-center rounded-xl border border-gray-200 bg-gray-50/50 space-y-2">
-                          <Tag className="w-6 h-6 mx-auto text-gray-400" />
-                          <h4 className="text-xs font-bold text-gray-700">
-                            No initiatives match category "{selectedGoalCategoryFilter}"
-                          </h4>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedGoalCategoryFilter('all')}
-                            className="px-3 py-1.5 text-xs font-bold text-[#043E49] hover:underline cursor-pointer"
-                          >
-                            View All Initiatives
-                          </button>
-                        </div>
-                      );
-                    }
-
-                    return filteredGoalEntries.map(({ goal, originalIdx: idx }) => (
-                      <div key={goal.id || idx} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
+                  formData.goals.goals.map((goal, idx) => (
+                    <div key={goal.id || idx} className="p-4 rounded-xl border border-gray-200 bg-gray-50/50 space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="w-6 h-6 rounded-full bg-[#043E49] text-white text-[11px] font-bold flex items-center justify-center">
@@ -3711,40 +3461,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {/* Category Selector with dropdown, manual input, and chips */}
-                          <div className="space-y-1.5">
-                            <div className="flex items-center justify-between">
-                              <label className="block text-[10px] font-bold text-gray-600 uppercase tracking-wider flex items-center gap-1">
-                                <Tag className="w-3 h-3 text-[#043E49]" />
-                                <span>Category</span>
-                              </label>
-                              <span className="text-[10px] font-semibold text-[#043E49] bg-teal-50 border border-teal-200/60 px-1.5 py-0.2 rounded">
-                                {goal.tag || 'Unassigned'}
-                              </span>
-                            </div>
-
-                            <select
-                              value={allAvailableGoalCategories.includes(goal.tag) ? goal.tag : '__custom__'}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (val !== '__custom__') {
-                                  const updated = [...formData.goals.goals];
-                                  updated[idx].tag = val;
-                                  setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
-                                }
-                              }}
-                              className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold text-gray-800 cursor-pointer focus:border-[#043E49] focus:ring-1 focus:ring-[#043E49]"
-                            >
-                              <optgroup label="Select Category">
-                                {allAvailableGoalCategories.map((cat) => (
-                                  <option key={cat} value={cat}>
-                                    {cat}
-                                  </option>
-                                ))}
-                              </optgroup>
-                              <option value="__custom__">Custom / Type Manually...</option>
-                            </select>
-
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Tag / Category Badge</label>
                             <input
                               type="text"
                               value={goal.tag}
@@ -3753,30 +3471,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 updated[idx].tag = e.target.value;
                                 setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
                               }}
-                              placeholder="Or type custom category name"
-                              className="w-full px-2.5 py-1 rounded-md border border-gray-200 bg-white text-xs text-gray-700 focus:bg-white"
+                              placeholder="e.g. Land & Habitats"
+                              className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white text-xs font-bold"
                             />
-
-                            <div className="flex flex-wrap gap-1 pt-0.5">
-                              {['Land & Habitats', 'Advanced Medicine', 'Wildlife Rehabilitation', 'Eco-Mobility', 'Solar Sanctuary'].map((chip) => (
-                                <button
-                                  key={chip}
-                                  type="button"
-                                  onClick={() => {
-                                    const updated = [...formData.goals.goals];
-                                    updated[idx].tag = chip;
-                                    setFormData({ ...formData, goals: { ...formData.goals, goals: updated } });
-                                  }}
-                                  className={`text-[10px] px-1.5 py-0.5 rounded transition-colors cursor-pointer ${
-                                    goal.tag === chip
-                                      ? 'bg-[#043E49] text-white font-bold'
-                                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                  }`}
-                                >
-                                  {chip}
-                                </button>
-                              ))}
-                            </div>
                           </div>
                         <div>
                           <label className="block text-[10px] font-bold text-gray-500 mb-0.5">Heading</label>
@@ -3930,8 +3627,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                         </div>
                       </div>
                     </div>
-                  ));
-                })()
+                  ))
               )}
               </div>
             </div>
