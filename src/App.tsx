@@ -5,6 +5,7 @@ import { DonationAppealBox } from './components/DonationAppealBox';
 import { DonationSuccessModal } from './components/DonationSuccessModal';
 import { WhatWeDoSection } from './components/WhatWeDoSection';
 import { StoriesSection } from './components/StoriesSection';
+import { HomeGalleryPreview } from './components/HomeGalleryPreview';
 import { GalleryPage } from './components/GalleryPage';
 import { AdminPanel } from './components/AdminPanel';
 import { AboutUsPage } from './components/AboutUsPage';
@@ -20,6 +21,10 @@ import {
   saveSiteContent, 
   DEFAULT_SITE_CONTENT 
 } from './siteContent';
+import { 
+  loadGalleryItemsFromStorage, 
+  saveGalleryItemsToStorage 
+} from './utils/mediaStorage';
 import { ArrowUp } from 'lucide-react';
 
 type PageRoute = 'home' | 'gallery' | 'about' | 'goals' | 'admin' | 'story';
@@ -67,13 +72,13 @@ export default function App() {
   const [selectedAppealTarget, setSelectedAppealTarget] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Gallery items managed through Admin Panel
+  // Gallery items managed through Admin Panel (backed by IndexedDB + LocalStorage)
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(() => {
     try {
       const saved = localStorage.getItem('pawhaven_admin_gallery_photos');
       if (saved !== null) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
     } catch {
       // ignore parse errors
@@ -81,28 +86,47 @@ export default function App() {
     return INITIAL_GALLERY_ITEMS;
   });
 
+  // Hydrate from IndexedDB on startup for high-capacity video and media storage
   useEffect(() => {
-    try {
-      localStorage.setItem('pawhaven_admin_gallery_photos', JSON.stringify(galleryItems));
-    } catch {
-      // storage full or disabled
-    }
+    loadGalleryItemsFromStorage().then((saved) => {
+      if (saved && Array.isArray(saved) && saved.length > 0) {
+        setGalleryItems(saved);
+      }
+    });
+  }, []);
+
+  // Persist gallery items safely to IndexedDB and LocalStorage
+  useEffect(() => {
+    saveGalleryItemsToStorage(galleryItems);
   }, [galleryItems]);
 
   const handleAddPhoto = (item: GalleryItem) => {
-    setGalleryItems((prev) => [item, ...prev]);
+    setGalleryItems((prev) => {
+      const next = [item, ...prev.filter(i => i.id !== item.id)];
+      saveGalleryItemsToStorage(next);
+      return next;
+    });
   };
 
   const handleDeletePhoto = (id: string) => {
-    setGalleryItems((prev) => prev.filter((item) => item.id !== id));
+    setGalleryItems((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      saveGalleryItemsToStorage(next);
+      return next;
+    });
   };
 
   const handleUpdateGalleryItems = (items: GalleryItem[]) => {
     setGalleryItems(items);
+    saveGalleryItemsToStorage(items);
   };
 
   const handleUpdatePhoto = (updatedItem: GalleryItem) => {
-    setGalleryItems((prev) => prev.map((item) => item.id === updatedItem.id ? updatedItem : item));
+    setGalleryItems((prev) => {
+      const next = prev.map((item) => item.id === updatedItem.id ? updatedItem : item);
+      saveGalleryItemsToStorage(next);
+      return next;
+    });
   };
 
   const handleSaveContent = (newContent: SiteContent) => {
@@ -339,6 +363,12 @@ export default function App() {
               onSelectStory={handleSelectStory}
             />
           </div>
+
+          {/* Live Sanctuary Moments & Videos Showcase */}
+          <HomeGalleryPreview
+            galleryItems={galleryItems}
+            onViewAllGallery={handleNavigateGallery}
+          />
         </>
       )}
 

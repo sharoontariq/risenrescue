@@ -52,6 +52,32 @@ export const INITIAL_GALLERY_ITEMS: GalleryItem[] = [
     photographer: 'Forest Rescue Patrol'
   },
   {
+    id: 'gallery-v1',
+    title: 'Sanctuary Animal Playtime & Rehabilitation',
+    caption: 'Rescued puppies and wildlife enjoying open fields and dedicated volunteer care at the sanctuary.',
+    category: 'Sanctuary Life',
+    imageUrl: 'https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=1200&q=80',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    mediaType: 'video',
+    duration: '0:15',
+    uploadedAt: 'Sep 20, 2026',
+    isUserUploaded: false,
+    photographer: 'PawHaven Video Team'
+  },
+  {
+    id: 'gallery-v2',
+    title: 'Wildlife Rehabilitation Freedom Flight',
+    caption: 'Trained staff and rehabilitators releasing recovered birds back into natural woodland reserves.',
+    category: 'Wildlife Rehabilitation',
+    imageUrl: 'https://images.unsplash.com/photo-1555169062-013468b47731?auto=format&fit=crop&w=1200&q=80',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    mediaType: 'video',
+    duration: '0:30',
+    uploadedAt: 'Sep 15, 2026',
+    isUserUploaded: false,
+    photographer: 'Wildlife Care Dept'
+  },
+  {
     id: 'gallery-6',
     title: 'Post-Surgery Walk in the Garden',
     caption: 'First steps without a splint for Milo after complex orthopedic trauma healing.',

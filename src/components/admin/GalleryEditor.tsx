@@ -4,10 +4,12 @@ import {
   Trash2, 
   ArrowUp, 
   ArrowDown, 
-  Image as ImageIcon 
+  Image as ImageIcon,
+  Calendar
 } from 'lucide-react';
 import { GalleryItem } from '../../types';
 import { ImageField } from './ImageField';
+import { formatGalleryDate, toInputDateFormat } from '../../utils/mediaStorage';
 
 interface GalleryEditorProps {
   items: GalleryItem[];
@@ -18,6 +20,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ items, onChange })
   const [newTitle, setNewTitle] = useState('');
   const [newCaption, setNewCaption] = useState('');
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [newDate, setNewDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +35,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ items, onChange })
       caption: newCaption.trim() || '',
       category: 'Gallery',
       imageUrl: newImageUrl,
-      uploadedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+      uploadedAt: formatGalleryDate(newDate),
       isUserUploaded: true
     };
 
@@ -40,6 +43,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ items, onChange })
     setNewTitle('');
     setNewCaption('');
     setNewImageUrl('');
+    setNewDate(new Date().toISOString().split('T')[0]);
   };
 
   const handleUpdateItem = (index: number, updated: Partial<GalleryItem>) => {
@@ -81,7 +85,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ items, onChange })
           helperText="PNG, JPG, or WEBP files supported"
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="space-y-1">
             <label className="text-[11px] font-bold text-gray-700">Photo Title</label>
             <input
@@ -94,12 +98,25 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ items, onChange })
           </div>
 
           <div className="space-y-1">
+            <label className="text-[11px] font-bold text-gray-700 flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-[#043E49]" />
+              <span>Upload / Display Date</span>
+            </label>
+            <input
+              type="date"
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+              className="w-full px-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg text-gray-900"
+            />
+          </div>
+
+          <div className="space-y-1">
             <label className="text-[11px] font-bold text-gray-700">Photo Caption</label>
             <input
               type="text"
               value={newCaption}
               onChange={(e) => setNewCaption(e.target.value)}
-              placeholder="e.g. Rescued canine pack enjoying freedom in open pasture..."
+              placeholder="e.g. Rescued canine pack enjoying freedom..."
               className="w-full px-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg text-gray-900"
             />
           </div>
@@ -122,7 +139,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ items, onChange })
           <h4 className="text-xs font-black text-[#1A1A1A] uppercase tracking-wider">
             Current Gallery Pictures ({items.length})
           </h4>
-          <span className="text-[11px] text-gray-500">Edit titles, replace pictures, reorder, or delete</span>
+          <span className="text-[11px] text-gray-500">Edit titles, dates, replace pictures, reorder, or delete</span>
         </div>
 
         {items.length === 0 ? (
@@ -145,7 +162,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ items, onChange })
                       {item.title || 'Untitled Photo'}
                     </span>
                     {item.uploadedAt && (
-                      <span className="text-[10px] text-gray-400">({item.uploadedAt})</span>
+                      <span className="text-[10px] text-gray-400">({formatGalleryDate(item.uploadedAt)})</span>
                     )}
                   </div>
 
@@ -179,13 +196,26 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ items, onChange })
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-gray-700">Title</label>
                     <input
                       type="text"
                       value={item.title || ''}
                       onChange={(e) => handleUpdateItem(idx, { title: e.target.value })}
+                      className="w-full px-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg text-gray-900"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-gray-700 flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-[#043E49]" />
+                      <span>Date</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={toInputDateFormat(item.uploadedAt)}
+                      onChange={(e) => handleUpdateItem(idx, { uploadedAt: formatGalleryDate(e.target.value) })}
                       className="w-full px-3 py-1.5 text-xs bg-white border border-gray-300 rounded-lg text-gray-900"
                     />
                   </div>

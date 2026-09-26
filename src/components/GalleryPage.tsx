@@ -3,12 +3,16 @@ import {
   ArrowLeft, 
   X, 
   Maximize2, 
-  Image as ImageIcon,
-  Clock,
-  Tag
+  Image as ImageIcon, 
+  Clock, 
+  Calendar,
+  Tag, 
+  Play, 
+  Video 
 } from 'lucide-react';
 import { GalleryItem } from '../types';
 import { GalleryContent } from '../siteContent';
+import { getVideoEmbedInfo, formatGalleryDate } from '../utils/mediaStorage';
 
 interface GalleryPageProps {
   content?: GalleryContent;
@@ -25,8 +29,8 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   const pageTitle = content?.pageTitle || 'Gallery';
-  const emptyStateHeading = content?.emptyStateHeading || 'No pictures uploaded yet';
-  const emptyStateDescription = content?.emptyStateDescription || 'Check back soon for photo updates from our animal sanctuary and rescue missions.';
+  const emptyStateHeading = content?.emptyStateHeading || 'No media uploaded yet';
+  const emptyStateDescription = content?.emptyStateDescription || 'Check back soon for photo and video updates from our animal sanctuary and rescue missions.';
 
   const categories = useMemo(() => {
     const list = content?.categories && Array.isArray(content.categories) && content.categories.length > 0
@@ -72,7 +76,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
 
             <div className="flex items-center gap-2.5">
               <span className="text-xs font-semibold text-gray-500">
-                {filteredItems.length} of {galleryItems.length} {galleryItems.length === 1 ? 'Picture' : 'Pictures'}
+                {filteredItems.length} of {galleryItems.length} {galleryItems.length === 1 ? 'Item' : 'Items'}
               </span>
             </div>
           </div>
@@ -81,7 +85,7 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
 
       {/* Main Gallery Stage */}
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-5 sm:mt-6 space-y-5">
-        {/* Category Filter Pills (Matches Site Design) */}
+        {/* Category Filter Pills */}
         {categories.length > 1 && (
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
             {categories.map((cat) => {
@@ -120,12 +124,12 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
               <ImageIcon className="w-6 h-6 text-[#043E49]" />
             </div>
             <h2 className="text-base sm:text-lg font-black text-[#1A1A1A]">
-              {galleryItems.length === 0 ? emptyStateHeading : `No pictures in "${selectedCategory}"`}
+              {galleryItems.length === 0 ? emptyStateHeading : `No media in "${selectedCategory}"`}
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
               {galleryItems.length === 0 
                 ? emptyStateDescription 
-                : `There are currently no photos in the "${selectedCategory}" category.`}
+                : `There are currently no photos or videos in the "${selectedCategory}" category.`}
             </p>
             {galleryItems.length > 0 && selectedCategory !== 'All' && (
               <div className="pt-2">
@@ -134,138 +138,199 @@ export const GalleryPage: React.FC<GalleryPageProps> = ({
                   onClick={() => setSelectedCategory('All')}
                   className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white transition-colors cursor-pointer"
                 >
-                  Show All Pictures ({galleryItems.length})
+                  Show All Media ({galleryItems.length})
                 </button>
               </div>
             )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-            {filteredItems.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => setActiveLightboxItem(item)}
-                className="group bg-white rounded-xl overflow-hidden border border-gray-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer flex flex-col"
-              >
-                {/* Image Frame */}
-                <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title || 'Gallery image'}
-                    className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
-                  />
-                  {/* Category Badge on Thumbnail */}
-                  {item.category && (
-                    <div className="absolute top-2.5 left-2.5 z-10 pointer-events-none">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/20 shadow-xs">
-                        <Tag className="w-2.5 h-2.5" />
-                        <span>{item.category}</span>
-                      </span>
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                    <span className="p-1.5 rounded-full bg-white/90 text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity shadow-xs">
-                      <Maximize2 className="w-3.5 h-3.5" />
-                    </span>
-                  </div>
-                </div>
+            {filteredItems.map((item) => {
+              const isVideo = item.mediaType === 'video' || Boolean(item.videoUrl);
+              const embedInfo = isVideo ? getVideoEmbedInfo(item.videoUrl) : null;
+              const displayImage = item.imageUrl || embedInfo?.defaultThumbnail || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=1200&q=80';
 
-                {/* Picture Details (only if title or caption exists) */}
-                {(item.title || item.caption) && (
-                  <div className="p-3 sm:p-3.5 flex flex-col justify-between flex-1">
-                    <div>
-                      {item.title && (
-                        <h3 className="text-xs sm:text-sm font-bold text-[#1A1A1A] line-clamp-1 group-hover:text-[#043E49] transition-colors">
-                          {item.title}
-                        </h3>
-                      )}
-                      {item.caption && (
-                        <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5">
-                          {item.caption}
-                        </p>
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => setActiveLightboxItem(item)}
+                  className="group bg-white rounded-xl overflow-hidden border border-gray-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer flex flex-col"
+                >
+                  {/* Media Frame */}
+                  <div className="relative aspect-[4/3] bg-gray-900 overflow-hidden">
+                    <img
+                      src={displayImage}
+                      alt={item.title || (isVideo ? 'Gallery video' : 'Gallery image')}
+                      className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500"
+                    />
+
+                    {/* Top Badges (Category & Media Type) */}
+                    <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none z-10">
+                      {item.category ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/20 shadow-xs">
+                          <Tag className="w-2.5 h-2.5" />
+                          <span>{item.category}</span>
+                        </span>
+                      ) : <span />}
+
+                      {isVideo && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-[#043E49]/90 backdrop-blur-md px-2 py-0.5 rounded-md border border-teal-300/30 shadow-xs">
+                          <Video className="w-2.5 h-2.5 text-teal-300" />
+                          <span>Video {item.duration ? `• ${item.duration}` : ''}</span>
+                        </span>
                       )}
                     </div>
-                    {item.uploadedAt && (
-                      <div className="flex items-center justify-between text-[10px] text-gray-400 mt-2 pt-1.5 border-t border-gray-100">
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{item.uploadedAt}</span>
+
+                    {/* Hover / Play Overlay */}
+                    <div className={`absolute inset-0 transition-colors flex items-center justify-center ${
+                      isVideo ? 'bg-black/30 group-hover:bg-black/40' : 'bg-black/0 group-hover:bg-black/20'
+                    }`}>
+                      {isVideo ? (
+                        <div className="w-12 h-12 rounded-full bg-white/95 text-[#043E49] shadow-lg flex items-center justify-center pl-0.5 group-hover:scale-110 group-hover:bg-[#043E49] group-hover:text-white transition-all duration-300">
+                          <Play className="w-5 h-5 fill-current" />
                         </div>
-                        {item.category && (
-                          <span className="font-semibold text-gray-500">{item.category}</span>
+                      ) : (
+                        <span className="p-1.5 rounded-full bg-white/90 text-gray-900 opacity-0 group-hover:opacity-100 transition-opacity shadow-xs">
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Picture / Video Details */}
+                  {(item.title || item.caption) && (
+                    <div className="p-3 sm:p-3.5 flex flex-col justify-between flex-1">
+                      <div>
+                        {item.title && (
+                          <h3 className="text-xs sm:text-sm font-bold text-[#1A1A1A] line-clamp-1 group-hover:text-[#043E49] transition-colors">
+                            {item.title}
+                          </h3>
+                        )}
+                        {item.caption && (
+                          <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5">
+                            {item.caption}
+                          </p>
                         )}
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+                      {item.uploadedAt && (
+                        <div className="flex items-center justify-between text-[10px] text-gray-400 mt-2 pt-1.5 border-t border-gray-100">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3 text-[#043E49]" />
+                            <span>{formatGalleryDate(item.uploadedAt)}</span>
+                          </div>
+                          {item.category && (
+                            <span className="font-semibold text-gray-500">{item.category}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </main>
 
-      {/* High-Resolution Picture Viewer / Lightbox */}
-      {activeLightboxItem && (
-        <div 
-          onClick={() => setActiveLightboxItem(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in"
-        >
-          <div 
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-3xl bg-white rounded-2xl overflow-hidden shadow-xl border border-white/20 flex flex-col"
-          >
-            {/* Lightbox Image Container */}
-            <div className="relative w-full max-h-[70vh] bg-black flex items-center justify-center overflow-hidden">
-              <img
-                src={activeLightboxItem.imageUrl}
-                alt={activeLightboxItem.title}
-                className="max-h-[70vh] w-auto object-contain"
-              />
-              <button
-                onClick={() => setActiveLightboxItem(null)}
-                className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors cursor-pointer"
-                title="Close"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+      {/* High-Resolution Media Viewer / Video Player Lightbox */}
+      {activeLightboxItem && (() => {
+        const isVideo = activeLightboxItem.mediaType === 'video' || Boolean(activeLightboxItem.videoUrl);
+        const embed = isVideo ? getVideoEmbedInfo(activeLightboxItem.videoUrl) : null;
 
-            {/* Lightbox Details */}
-            <div className="p-4 sm:p-5 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                {activeLightboxItem.category && (
-                  <div className="mb-1">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-2 py-0.5 rounded-full">
-                      <Tag className="w-2.5 h-2.5" />
-                      <span>{activeLightboxItem.category}</span>
-                    </span>
-                  </div>
+        return (
+          <div 
+            onClick={() => setActiveLightboxItem(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-sm animate-fade-in"
+          >
+            <div 
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-3xl bg-white rounded-2xl overflow-hidden shadow-2xl border border-white/20 flex flex-col"
+            >
+              {/* Lightbox Media Container */}
+              <div className="relative w-full max-h-[70vh] bg-black flex items-center justify-center overflow-hidden">
+                {isVideo ? (
+                  embed?.type === 'youtube' || embed?.type === 'vimeo' ? (
+                    <div className="w-full aspect-video max-h-[70vh] bg-black flex items-center justify-center">
+                      <iframe
+                        src={embed.embedUrl}
+                        title={activeLightboxItem.title || 'Video Player'}
+                        className="w-full h-full aspect-video border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-full aspect-video max-h-[70vh] bg-black flex items-center justify-center">
+                      <video
+                        src={activeLightboxItem.videoUrl || activeLightboxItem.imageUrl}
+                        poster={activeLightboxItem.imageUrl}
+                        controls
+                        autoPlay
+                        playsInline
+                        className="w-full h-full max-h-[70vh] object-contain"
+                      />
+                    </div>
+                  )
+                ) : (
+                  <img
+                    src={activeLightboxItem.imageUrl}
+                    alt={activeLightboxItem.title}
+                    className="max-h-[70vh] w-auto object-contain"
+                  />
                 )}
-                <h3 className="text-base font-black text-[#1A1A1A]">
-                  {activeLightboxItem.title || 'Showcase Picture'}
-                </h3>
-                {activeLightboxItem.caption && (
-                  <p className="text-xs text-gray-600 mt-0.5">
-                    {activeLightboxItem.caption}
-                  </p>
-                )}
-                {activeLightboxItem.uploadedAt && (
-                  <p className="text-[10px] text-gray-400 mt-0.5">
-                    Uploaded: {activeLightboxItem.uploadedAt}
-                  </p>
-                )}
+                <button
+                  onClick={() => setActiveLightboxItem(null)}
+                  className="absolute top-2.5 right-2.5 p-1.5 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors cursor-pointer z-10"
+                  title="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <button
-                onClick={() => setActiveLightboxItem(null)}
-                className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white transition-colors cursor-pointer self-start sm:self-auto"
-              >
-                Close
-              </button>
+              {/* Lightbox Details */}
+              <div className="p-4 sm:p-5 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                    {activeLightboxItem.category && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#043E49] bg-[#043E49]/10 border border-[#043E49]/20 px-2 py-0.5 rounded-full">
+                        <Tag className="w-2.5 h-2.5" />
+                        <span>{activeLightboxItem.category}</span>
+                      </span>
+                    )}
+                    {(activeLightboxItem.mediaType === 'video' || activeLightboxItem.videoUrl) && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-800 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">
+                        <Video className="w-2.5 h-2.5 text-teal-600" />
+                        <span>Video {activeLightboxItem.duration ? `(${activeLightboxItem.duration})` : ''}</span>
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="text-base font-black text-[#1A1A1A]">
+                    {activeLightboxItem.title || (activeLightboxItem.mediaType === 'video' ? 'Sanctuary Video' : 'Showcase Picture')}
+                  </h3>
+                  {activeLightboxItem.caption && (
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      {activeLightboxItem.caption}
+                    </p>
+                  )}
+                  {activeLightboxItem.uploadedAt && (
+                    <div className="flex items-center gap-1 text-[10.5px] text-gray-400 mt-1">
+                      <Calendar className="w-3 h-3 text-[#043E49]" />
+                      <span>Date: {formatGalleryDate(activeLightboxItem.uploadedAt)}</span>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  onClick={() => setActiveLightboxItem(null)}
+                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#043E49] hover:bg-[#032f38] text-white transition-colors cursor-pointer self-start sm:self-auto"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

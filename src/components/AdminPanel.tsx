@@ -40,7 +40,12 @@ import {
   Settings2,
   Filter,
   Pencil,
-  FolderPlus
+  FolderPlus,
+  Calendar,
+  Play,
+  Video,
+  Film,
+  FileVideo
 } from 'lucide-react';
 import { GalleryItem, CarouselSlide, WhatWeDoItem, StoryCardItem } from '../types';
 import { 
@@ -50,6 +55,12 @@ import {
   FutureGoalItem, 
   DEFAULT_SITE_CONTENT 
 } from '../siteContent';
+import { 
+  getVideoEmbedInfo, 
+  saveGalleryItemsToStorage,
+  formatGalleryDate,
+  toInputDateFormat
+} from '../utils/mediaStorage';
 
 interface AdminPanelProps {
   content: SiteContent;
@@ -84,12 +95,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [formData, setFormData] = useState<SiteContent>(() => JSON.parse(JSON.stringify(content)));
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
-  // Gallery photo upload & category management state
+  // Gallery media upload & category management state
+  const [uploadMediaType, setUploadMediaType] = useState<'photo' | 'video'>('photo');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewVideo, setPreviewVideo] = useState<string | null>(null);
+  const [videoThumbnailImage, setVideoThumbnailImage] = useState<string | null>(null);
+  const [videoDuration, setVideoDuration] = useState<string>('');
+  const [videoInputMode, setVideoInputMode] = useState<'file' | 'url'>('file');
+  const [videoUrlInput, setVideoUrlInput] = useState<string>('');
+  const [isExtractingVideo, setIsExtractingVideo] = useState<boolean>(false);
   const [photoTitle, setPhotoTitle] = useState('');
   const [photoCaption, setPhotoCaption] = useState('');
+  const [photoUploadDate, setPhotoUploadDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [selectedUploadCategory, setSelectedUploadCategory] = useState<string>('');
   const [selectedGalleryCategoryFilter, setSelectedGalleryCategoryFilter] = useState<string>('All');
+  const [selectedGalleryMediaTypeFilter, setSelectedGalleryMediaTypeFilter] = useState<'all' | 'photo' | 'video'>('all');
   const [isManagingGalleryCategories, setIsManagingGalleryCategories] = useState(false);
   const [newGalleryCategoryInput, setNewGalleryCategoryInput] = useState('');
   const [categoryError, setCategoryError] = useState<string | null>(null);
@@ -101,9 +121,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
   const [editPhotoTitle, setEditPhotoTitle] = useState('');
   const [editPhotoCaption, setEditPhotoCaption] = useState('');
+  const [editPhotoUploadDate, setEditPhotoUploadDate] = useState('');
   const [editPhotoCategory, setEditPhotoCategory] = useState('');
+  const [editPhotoMediaType, setEditPhotoMediaType] = useState<'image' | 'video'>('image');
+  const [editPhotoVideoUrl, setEditPhotoVideoUrl] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoFileInputRef = useRef<HTMLInputElement>(null);
 
   // Hero Carousel image upload state
   const heroFileInputRef = useRef<HTMLInputElement>(null);
@@ -1025,12 +1049,77 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     }));
   };
 
+  // Extract video frame for thumbnail poster and calculate duration
+  const extractVideoFrameAndDuration = (fileOrUrl: File | string): Promise<{ posterUrl: string; durationStr: string }> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+
+      let blobUrl: string | null = null;
+      if (typeof fileOrUrl === 'string') {
+        video.src = fileOrUrl;
+        video.crossOrigin = 'anonymous';
+      } else {
+        blobUrl = URL.createObjectURL(fileOrUrl);
+        video.src = blobUrl;
+      }
+
+      const formatDuration = (secs: number) => {
+        if (!secs || isNaN(secs)) return '';
+        const m = Math.floor(secs / 60);
+        const s = Math.floor(secs % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+      };
+
+      const cleanUp = () => {
+        if (blobUrl) URL.revokeObjectURL(blobUrl);
+      };
+
+      video.onloadedmetadata = () => {
+        video.currentTime = Math.min(1.0, video.duration > 2 ? 1.0 : video.duration / 2);
+      };
+
+      video.onseeked = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 360;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const posterUrl = canvas.toDataURL('image/jpeg', 0.85);
+            const durationStr = formatDuration(video.duration || 0);
+            cleanUp();
+            resolve({ posterUrl, durationStr });
+            return;
+          }
+        } catch {
+          // canvas export fallback
+        }
+        cleanUp();
+        resolve({ posterUrl: '', durationStr: formatDuration(video.duration || 0) });
+      };
+
+      video.onerror = () => {
+        cleanUp();
+        resolve({ posterUrl: '', durationStr: '' });
+      };
+    });
+  };
+
   // Gallery photo file handling
   const handleFiles = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const file = files[0];
+    if (file.type.startsWith('video/')) {
+      setUploadMediaType('video');
+      handleVideoFiles(files);
+      return;
+    }
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (PNG, JPG, WEBP, etc.)');
+      alert('Please select an image file (PNG, JPG, WEBP, etc.) or video file (MP4, WebM, etc.)');
       return;
     }
 
@@ -1040,6 +1129,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       setPreviewImage(result);
       const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
       setPhotoTitle(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Gallery video file handling
+  const handleVideoFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('video/')) {
+      alert('Please select a valid video file (MP4, WebM, MOV, etc.)');
+      return;
+    }
+
+    setIsExtractingVideo(true);
+    const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+    if (!photoTitle) {
+      setPhotoTitle(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const result = e.target?.result as string;
+      setPreviewVideo(result);
+      try {
+        const { posterUrl, durationStr } = await extractVideoFrameAndDuration(file);
+        if (posterUrl) setVideoThumbnailImage(posterUrl);
+        if (durationStr) setVideoDuration(durationStr);
+      } catch {
+        // extraction error fallback
+      }
+      setIsExtractingVideo(false);
     };
     reader.readAsDataURL(file);
   };
@@ -1056,9 +1176,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   }, [formData.gallery?.categories, galleryItems]);
 
   const adminFilteredGalleryItems = React.useMemo(() => {
-    if (selectedGalleryCategoryFilter === 'All') return galleryItems;
-    return galleryItems.filter(item => (item.category || '').toLowerCase() === selectedGalleryCategoryFilter.toLowerCase());
-  }, [galleryItems, selectedGalleryCategoryFilter]);
+    return galleryItems.filter(item => {
+      const matchCategory = selectedGalleryCategoryFilter === 'All' || 
+        (item.category || '').toLowerCase() === selectedGalleryCategoryFilter.toLowerCase();
+      
+      const isVideo = item.mediaType === 'video' || Boolean(item.videoUrl);
+      const matchMediaType = 
+        selectedGalleryMediaTypeFilter === 'all' ||
+        (selectedGalleryMediaTypeFilter === 'video' && isVideo) ||
+        (selectedGalleryMediaTypeFilter === 'photo' && !isVideo);
+
+      return matchCategory && matchMediaType;
+    });
+  }, [galleryItems, selectedGalleryCategoryFilter, selectedGalleryMediaTypeFilter]);
 
   const handleAddGalleryCategory = (nameToAdd?: string) => {
     const target = (nameToAdd !== undefined ? nameToAdd : newGalleryCategoryInput).trim();
@@ -1149,7 +1279,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
     setEditingCategoryIndex(null);
     setEditingCategoryValue('');
-    setSaveStatus(`Renamed category to "${trimmed}". Updated ${count} image(s).`);
+    setSaveStatus(`Renamed category to "${trimmed}". Updated ${count} item(s).`);
     setTimeout(() => setSaveStatus(null), 3500);
   };
 
@@ -1203,7 +1333,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     if (selectedGalleryCategoryFilter.toLowerCase() === catToDelete.toLowerCase()) setSelectedGalleryCategoryFilter('All');
     setDeletingCategoryName(null);
 
-    setSaveStatus(`Deleted category "${catToDelete}". ${affected.length > 0 ? `Moved ${affected.length} image(s) to "${fallback}".` : ''}`);
+    setSaveStatus(`Deleted category "${catToDelete}". ${affected.length > 0 ? `Moved ${affected.length} item(s) to "${fallback}".` : ''}`);
     setTimeout(() => setSaveStatus(null), 3500);
   };
 
@@ -1217,12 +1347,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       const target = updated.find(i => i.id === photoId);
       if (target) onUpdatePhoto(target);
     }
-    try {
-      localStorage.setItem('pawhaven_admin_gallery_photos', JSON.stringify(updated));
-    } catch {
-      // storage error
+    saveGalleryItemsToStorage(updated);
+    setSaveStatus(`Moved media to "${newCategory}"`);
+    setTimeout(() => setSaveStatus(null), 2500);
+  };
+
+  const handleQuickUpdateDate = (photoId: string, newDateStr: string) => {
+    const formatted = formatGalleryDate(newDateStr);
+    const updated = galleryItems.map(item =>
+      item.id === photoId ? { ...item, uploadedAt: formatted } : item
+    );
+    if (onUpdateGalleryItems) {
+      onUpdateGalleryItems(updated);
+    } else if (onUpdatePhoto) {
+      const target = updated.find(i => i.id === photoId);
+      if (target) onUpdatePhoto(target);
     }
-    setSaveStatus(`Moved image to "${newCategory}"`);
+    saveGalleryItemsToStorage(updated);
+    setSaveStatus(`Date updated to ${formatted}`);
     setTimeout(() => setSaveStatus(null), 2500);
   };
 
@@ -1230,17 +1372,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     setEditingPhotoId(item.id);
     setEditPhotoTitle(item.title);
     setEditPhotoCaption(item.caption || '');
+    setEditPhotoUploadDate(toInputDateFormat(item.uploadedAt));
     setEditPhotoCategory(item.category || galleryCategories[0] || 'Other');
+    setEditPhotoMediaType(item.mediaType === 'video' || Boolean(item.videoUrl) ? 'video' : 'image');
+    setEditPhotoVideoUrl(item.videoUrl || '');
   };
 
   const handleSaveEditPhoto = (photoId: string) => {
     const updated = galleryItems.map(item => {
       if (item.id === photoId) {
+        const isVideo = editPhotoMediaType === 'video';
         return {
           ...item,
           title: editPhotoTitle.trim() || item.title,
           caption: editPhotoCaption.trim(),
-          category: editPhotoCategory || item.category || galleryCategories[0] || 'Other'
+          uploadedAt: formatGalleryDate(editPhotoUploadDate) || item.uploadedAt,
+          category: editPhotoCategory || item.category || galleryCategories[0] || 'Other',
+          mediaType: isVideo ? ('video' as const) : ('image' as const),
+          videoUrl: isVideo ? (editPhotoVideoUrl.trim() || item.videoUrl) : undefined
         };
       }
       return item;
@@ -1251,50 +1400,87 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       const target = updated.find(i => i.id === photoId);
       if (target) onUpdatePhoto(target);
     }
-    try {
-      localStorage.setItem('pawhaven_admin_gallery_photos', JSON.stringify(updated));
-    } catch {
-      // storage error
-    }
+    saveGalleryItemsToStorage(updated);
     setEditingPhotoId(null);
-    setSaveStatus('Photo details updated!');
+    setSaveStatus('Media details updated!');
     setTimeout(() => setSaveStatus(null), 2500);
   };
 
   const handlePhotoPublish = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!previewImage) {
-      alert('Please select an image to upload.');
-      return;
+    const isVideo = uploadMediaType === 'video';
+
+    if (isVideo) {
+      const hasVideo = previewVideo || videoUrlInput.trim();
+      if (!hasVideo) {
+        alert('Please select a video file or enter a video URL.');
+        return;
+      }
+    } else {
+      if (!previewImage) {
+        alert('Please select an image to upload.');
+        return;
+      }
     }
 
     const effectiveCategory = selectedUploadCategory || galleryCategories[0] || 'Other';
+    const fallbackPoster = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=1200&q=80';
+
+    let finalPoster = previewImage || fallbackPoster;
+    const finalVideoUrl = isVideo ? (previewVideo || videoUrlInput.trim()) : undefined;
+
+    if (isVideo) {
+      const embed = getVideoEmbedInfo(finalVideoUrl);
+      if (videoThumbnailImage) {
+        finalPoster = videoThumbnailImage;
+      } else if (embed.defaultThumbnail) {
+        finalPoster = embed.defaultThumbnail;
+      } else if (previewImage) {
+        finalPoster = previewImage;
+      } else {
+        finalPoster = fallbackPoster;
+      }
+    }
+
+    const finalDate = formatGalleryDate(photoUploadDate);
 
     const newItem: GalleryItem = {
-      id: `gallery-photo-${Date.now()}`,
-      title: photoTitle.trim() || 'Untitled Photo',
+      id: `gallery-${isVideo ? 'video' : 'photo'}-${Date.now()}`,
+      title: photoTitle.trim() || (isVideo ? 'Untitled Sanctuary Video' : 'Untitled Photo'),
       caption: photoCaption.trim() || '',
       category: effectiveCategory,
-      imageUrl: previewImage,
-      uploadedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+      mediaType: isVideo ? 'video' : 'image',
+      imageUrl: finalPoster,
+      videoUrl: finalVideoUrl,
+      duration: isVideo ? (videoDuration || (finalVideoUrl?.includes('youtube') ? 'YouTube' : undefined)) : undefined,
+      uploadedAt: finalDate,
       isUserUploaded: true
     };
 
     onAddPhoto(newItem);
+    saveGalleryItemsToStorage([newItem, ...galleryItems.filter(i => i.id !== newItem.id)]);
+
     setPreviewImage(null);
+    setPreviewVideo(null);
+    setVideoThumbnailImage(null);
+    setVideoDuration('');
+    setVideoUrlInput('');
     setPhotoTitle('');
     setPhotoCaption('');
-    setSaveStatus(`Photo published directly to "${effectiveCategory}" in Gallery!`);
-    setTimeout(() => setSaveStatus(null), 3500);
+    setPhotoUploadDate(new Date().toISOString().split('T')[0]);
+    setSaveStatus(`${isVideo ? 'Video' : 'Photo'} published directly to "${effectiveCategory}" in Gallery!`);
+    setTimeout(() => setSaveStatus(null), 4000);
   };
 
   const handleDeletePhotoItem = (id: string, itemTitle?: string) => {
     onDeletePhoto(id);
+    const updated = galleryItems.filter(item => item.id !== id);
     if (onUpdateGalleryItems) {
-      onUpdateGalleryItems(galleryItems.filter(item => item.id !== id));
+      onUpdateGalleryItems(updated);
     }
+    saveGalleryItemsToStorage(updated);
     setDeletingPhotoId(null);
-    setSaveStatus(`Removed "${itemTitle || 'photo'}" from gallery.`);
+    setSaveStatus(`Removed "${itemTitle || 'media'}" from gallery.`);
     setTimeout(() => setSaveStatus(null), 3000);
   };
 
@@ -1341,11 +1527,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 
               <button
                 type="button"
-                onClick={onViewGallery}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#043E49] bg-[#043E49]/10 hover:bg-[#043E49]/20 border border-[#043E49]/20 transition-colors cursor-pointer"
+                onClick={onBackToHome}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 transition-colors cursor-pointer"
+                title="View Home Page"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">View Site</span>
+                <span>View Home</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onViewGallery}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#043E49] bg-[#043E49]/10 hover:bg-[#043E49]/20 border border-[#043E49]/20 transition-colors cursor-pointer"
+                title="View Gallery Page"
+              >
+                <Video className="w-3.5 h-3.5" />
+                <span>View Gallery</span>
               </button>
 
               <button
@@ -3880,98 +4077,315 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
               </div>
             </div>
 
-            {/* Upload New Picture to Gallery */}
+            {/* Upload New Photo or Video to Gallery */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-4">
-              <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
-                <Upload className="w-5 h-5 text-[#043E49]" />
-                <div>
-                  <h2 className="text-base font-black text-[#1A1A1A]">Upload New Picture to Gallery</h2>
-                  <p className="text-xs text-gray-500">
-                    Uploaded photos appear instantly on the public Gallery page under their selected category.
-                  </p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-2">
+                  <Upload className="w-5 h-5 text-[#043E49]" />
+                  <div>
+                    <h2 className="text-base font-black text-[#1A1A1A]">Upload New Media to Gallery</h2>
+                    <p className="text-xs text-gray-500">
+                      Upload photos or videos. Media items appear instantly on the public Gallery page.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Media Type Switcher: Photo vs Video */}
+                <div className="flex items-center p-1 bg-gray-100 rounded-xl border border-gray-200 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setUploadMediaType('photo')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      uploadMediaType === 'photo'
+                        ? 'bg-[#043E49] text-white shadow-2xs'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>Photo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUploadMediaType('video')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      uploadMediaType === 'video'
+                        ? 'bg-[#043E49] text-white shadow-2xs'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <Video className="w-3.5 h-3.5" />
+                    <span>Video</span>
+                  </button>
                 </div>
               </div>
 
               <form onSubmit={handlePhotoPublish} className="space-y-4">
-                <div
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setIsDragging(false);
-                    if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
-                  }}
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-xl p-5 sm:p-6 text-center transition-all cursor-pointer ${
-                    isDragging
-                      ? 'border-[#043E49] bg-[#043E49]/10 scale-[1.01]'
-                      : 'border-gray-200 hover:border-[#043E49]/60 hover:bg-gray-50/60'
-                  }`}
-                >
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={(e) => handleFiles(e.target.files)}
-                    accept="image/*"
-                    className="hidden"
-                  />
+                {uploadMediaType === 'photo' ? (
+                  /* Photo Upload Dropzone */
+                  <div
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      if (e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+                    }}
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-5 sm:p-6 text-center transition-all cursor-pointer ${
+                      isDragging
+                        ? 'border-[#043E49] bg-[#043E49]/10 scale-[1.01]'
+                        : 'border-gray-200 hover:border-[#043E49]/60 hover:bg-gray-50/60'
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={(e) => handleFiles(e.target.files)}
+                      accept="image/*"
+                      className="hidden"
+                    />
 
-                  {previewImage ? (
-                    <div className="flex flex-col items-center gap-2.5">
-                      <div className="relative rounded-xl overflow-hidden max-h-56 w-auto border-2 border-[#043E49] shadow-sm">
-                        <img
-                          src={previewImage}
-                          alt="Preview"
-                          className="max-h-56 w-auto object-contain bg-black/5"
+                    {previewImage ? (
+                      <div className="flex flex-col items-center gap-2.5">
+                        <div className="relative rounded-xl overflow-hidden max-h-56 w-auto border-2 border-[#043E49] shadow-sm">
+                          <img
+                            src={previewImage}
+                            alt="Preview"
+                            className="max-h-56 w-auto object-contain bg-black/5"
+                          />
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openCropModal(previewImage, null, photoTitle || 'Gallery photo', 'gallery', null);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] shadow-2xs transition-all cursor-pointer"
+                          >
+                            <Crop className="w-3.5 h-3.5" />
+                            <span>Resize & Crop</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewImage(null);
+                            }}
+                            className="text-xs text-rose-600 hover:underline font-bold cursor-pointer"
+                          >
+                            Change Picture
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center">
+                          <Upload className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">
+                            Click to select a picture or drag & drop here
+                          </p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            Supports JPG, PNG, WEBP • Max 10MB
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Video Upload Section */
+                  <div className="space-y-3">
+                    {/* Video Input Mode: File vs URL */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setVideoInputMode('file')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          videoInputMode === 'file'
+                            ? 'bg-teal-50 text-[#043E49] border border-teal-200'
+                            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                        }`}
+                      >
+                        <FileVideo className="w-3.5 h-3.5 text-[#043E49]" />
+                        <span>Upload Video File (MP4, WebM, MOV)</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVideoInputMode('url')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          videoInputMode === 'url'
+                            ? 'bg-teal-50 text-[#043E49] border border-teal-200'
+                            : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                        }`}
+                      >
+                        <LinkIcon className="w-3.5 h-3.5 text-[#043E49]" />
+                        <span>Paste Video URL</span>
+                      </button>
+                    </div>
+
+                    {videoInputMode === 'file' ? (
+                      <div
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setIsDragging(false);
+                          if (e.dataTransfer.files) handleVideoFiles(e.dataTransfer.files);
+                        }}
+                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                        onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                        onClick={() => videoFileInputRef.current?.click()}
+                        className={`border-2 border-dashed rounded-xl p-5 sm:p-6 text-center transition-all cursor-pointer ${
+                          isDragging
+                            ? 'border-[#043E49] bg-[#043E49]/10 scale-[1.01]'
+                            : 'border-gray-200 hover:border-[#043E49]/60 hover:bg-gray-50/60'
+                        }`}
+                      >
+                        <input
+                          type="file"
+                          ref={videoFileInputRef}
+                          onChange={(e) => handleVideoFiles(e.target.files)}
+                          accept="video/mp4,video/webm,video/ogg,video/quicktime,video/*"
+                          className="hidden"
                         />
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openCropModal(previewImage, null, photoTitle || 'Gallery photo', 'gallery', null);
-                          }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#043E49] text-white hover:bg-[#032f38] shadow-2xs transition-all cursor-pointer"
-                        >
-                          <Crop className="w-3.5 h-3.5" />
-                          <span>Resize & Crop</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPreviewImage(null);
-                          }}
-                          className="text-xs text-rose-600 hover:underline font-bold cursor-pointer"
-                        >
-                          Change Picture
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center">
-                        <Upload className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">
-                          Click to select a picture or drag & drop here
-                        </p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">
-                          Supports JPG, PNG, WEBP • Max 10MB
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {isExtractingVideo ? (
+                          <div className="flex flex-col items-center justify-center gap-2 py-4">
+                            <Loader2 className="w-8 h-8 text-[#043E49] animate-spin" />
+                            <p className="text-xs font-bold text-gray-700">Extracting video metadata & generating frame...</p>
+                          </div>
+                        ) : previewVideo ? (
+                          <div className="flex flex-col items-center gap-3">
+                            <div className="relative rounded-xl overflow-hidden max-h-56 max-w-md w-full bg-black border-2 border-[#043E49] shadow-sm flex items-center justify-center">
+                              <video
+                                src={previewVideo}
+                                controls
+                                className="max-h-56 w-full object-contain"
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-2.5 flex-wrap justify-center">
+                              {videoDuration && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#043E49] bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-lg">
+                                  <Clock className="w-3 h-3" />
+                                  <span>Duration: {videoDuration}</span>
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPreviewVideo(null);
+                                  setVideoThumbnailImage(null);
+                                  setVideoDuration('');
+                                }}
+                                className="text-xs text-rose-600 hover:underline font-bold cursor-pointer px-2 py-1"
+                              >
+                                Change Video
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <div className="w-10 h-10 rounded-xl bg-teal-50 text-[#043E49] flex items-center justify-center">
+                              <Film className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <p className="text-xs sm:text-sm font-bold text-[#1A1A1A]">
+                                Click to select a video or drag & drop here
+                              </p>
+                              <p className="text-[11px] text-gray-400 mt-0.5">
+                                Supports MP4, WebM, QuickTime MOV • Auto-generates thumbnail poster
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* Video URL Input */
+                      <div className="space-y-3 p-4 rounded-xl border border-gray-200 bg-gray-50/50">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">
+                            Video URL (YouTube, Vimeo, or Direct MP4 / WebM link)
+                          </label>
+                          <div className="relative flex items-center">
+                            <LinkIcon className="w-3.5 h-3.5 absolute left-3 text-gray-400 pointer-events-none" />
+                            <input
+                              type="url"
+                              placeholder="https://www.youtube.com/watch?v=... or https://example.com/video.mp4"
+                              value={videoUrlInput}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setVideoUrlInput(val);
+                                const embed = getVideoEmbedInfo(val);
+                                if (embed.defaultThumbnail && !videoThumbnailImage) {
+                                  setVideoThumbnailImage(embed.defaultThumbnail);
+                                }
+                              }}
+                              className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-gray-200 bg-white font-mono focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49]"
+                            />
+                          </div>
+                          <p className="text-[10px] text-gray-500 mt-1">
+                            Paste any public YouTube link, Vimeo link, or direct MP4/WebM URL.
+                          </p>
+                        </div>
+
+                        {/* Live URL Video Preview */}
+                        {videoUrlInput.trim() && (() => {
+                          const embed = getVideoEmbedInfo(videoUrlInput.trim());
+                          return (
+                            <div className="p-3 bg-white rounded-xl border border-gray-200 space-y-2">
+                              <span className="text-[11px] font-bold text-[#043E49] flex items-center gap-1">
+                                <Play className="w-3 h-3" />
+                                <span>Live Video Preview ({embed.type.toUpperCase()})</span>
+                              </span>
+                              <div className="relative rounded-lg overflow-hidden max-h-52 aspect-video bg-black flex items-center justify-center">
+                                {embed.type === 'youtube' || embed.type === 'vimeo' ? (
+                                  <iframe
+                                    src={embed.embedUrl}
+                                    title="Video Preview"
+                                    className="w-full h-full aspect-video border-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                  />
+                                ) : (
+                                  <video
+                                    src={videoUrlInput.trim()}
+                                    poster={videoThumbnailImage || undefined}
+                                    controls
+                                    className="max-h-52 w-full object-contain"
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">
+                            Video Poster / Thumbnail Image URL (Optional)
+                          </label>
+                          <input
+                            type="url"
+                            placeholder="https://images.unsplash.com/... (auto-extracted for YouTube)"
+                            value={videoThumbnailImage || ''}
+                            onChange={(e) => setVideoThumbnailImage(e.target.value)}
+                            className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49]"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 mb-1">Picture Title / Heading</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      {uploadMediaType === 'video' ? 'Video Title / Heading' : 'Picture Title / Heading'}
+                    </label>
                     <input
                       type="text"
-                      placeholder="e.g. Golden Retriever Playtime"
+                      placeholder={uploadMediaType === 'video' ? 'e.g. Elk Herd Rescue Operation' : 'e.g. Golden Retriever Playtime'}
                       value={photoTitle}
                       onChange={(e) => setPhotoTitle(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49]"
@@ -3994,11 +4408,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                     </select>
                   </div>
 
-                  <div className="sm:col-span-2 lg:col-span-1">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1 flex items-center gap-1">
+                      <Calendar className="w-3 h-3 text-[#043E49]" />
+                      <span>Upload / Capture Date</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={photoUploadDate}
+                      onChange={(e) => setPhotoUploadDate(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-800 bg-white focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49]"
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1">Caption / Description (Optional)</label>
                     <input
                       type="text"
-                      placeholder="e.g. Rescued and flourishing at the sanctuary"
+                      placeholder="e.g. Rescued and flourishing"
                       value={photoCaption}
                       onChange={(e) => setPhotoCaption(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs focus:ring-2 focus:ring-[#043E49]/20 focus:border-[#043E49]"
@@ -4009,52 +4436,94 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <div className="flex justify-end pt-1">
                   <button
                     type="submit"
-                    disabled={!previewImage}
+                    disabled={uploadMediaType === 'video' ? (!previewVideo && !videoUrlInput.trim()) : !previewImage}
                     className="px-4.5 py-2 rounded-lg text-xs sm:text-sm font-bold bg-[#043E49] hover:bg-[#032f38] disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload & Publish to Gallery</span>
+                    {uploadMediaType === 'video' ? <Video className="w-4 h-4" /> : <Upload className="w-3.5 h-3.5" />}
+                    <span>{uploadMediaType === 'video' ? 'Upload & Publish Video to Gallery' : 'Upload & Publish Photo to Gallery'}</span>
                   </button>
                 </div>
               </form>
             </div>
 
-            {/* Currently Uploaded Photos */}
+            {/* Currently Uploaded Media (Photos & Videos) */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-2xs space-y-4">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-gray-100">
                 <div>
-                  <h2 className="text-base font-black text-[#1A1A1A]">Pictures in Gallery ({galleryItems.length})</h2>
-                  <p className="text-xs text-gray-500">Live pictures visible to every visitor on the Gallery page.</p>
+                  <h2 className="text-base font-black text-[#1A1A1A]">Media in Gallery ({galleryItems.length})</h2>
+                  <p className="text-xs text-gray-500">Live photos and videos visible to every visitor on the Gallery page.</p>
                 </div>
 
-                {/* Category Filter Pills for Admin */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full scrollbar-none">
-                  {['All', ...galleryCategories].map((cat) => {
-                    const isSelected = selectedGalleryCategoryFilter.toLowerCase() === cat.toLowerCase();
-                    const count = cat === 'All'
-                      ? galleryItems.length
-                      : galleryItems.filter(item => (item.category || '').toLowerCase() === cat.toLowerCase()).length;
+                {/* Media Type & Category Filter Pills for Admin */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Media Type Filter */}
+                  <div className="flex items-center p-0.5 bg-gray-100 rounded-lg border border-gray-200">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGalleryMediaTypeFilter('all')}
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                        selectedGalleryMediaTypeFilter === 'all'
+                          ? 'bg-white text-[#043E49] shadow-2xs'
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      All ({galleryItems.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGalleryMediaTypeFilter('photo')}
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                        selectedGalleryMediaTypeFilter === 'photo'
+                          ? 'bg-white text-[#043E49] shadow-2xs'
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      <ImageIcon className="w-3 h-3" />
+                      <span>Photos ({galleryItems.filter(i => i.mediaType !== 'video' && !i.videoUrl).length})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGalleryMediaTypeFilter('video')}
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                        selectedGalleryMediaTypeFilter === 'video'
+                          ? 'bg-white text-[#043E49] shadow-2xs'
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      <Video className="w-3 h-3" />
+                      <span>Videos ({galleryItems.filter(i => i.mediaType === 'video' || Boolean(i.videoUrl)).length})</span>
+                    </button>
+                  </div>
 
-                    return (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setSelectedGalleryCategoryFilter(cat)}
-                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
-                          isSelected
-                            ? 'bg-[#043E49] text-white shadow-2xs'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        <span>{cat}</span>
-                        <span className={`text-[9px] px-1.5 py-0.1 rounded-full ${
-                          isSelected ? 'bg-white/20 text-white' : 'bg-white text-gray-600'
-                        }`}>
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
+                  {/* Category Filter Pills */}
+                  <div className="flex items-center gap-1 overflow-x-auto pb-0.5 max-w-full scrollbar-none">
+                    {['All', ...galleryCategories].map((cat) => {
+                      const isSelected = selectedGalleryCategoryFilter.toLowerCase() === cat.toLowerCase();
+                      const count = cat === 'All'
+                        ? galleryItems.length
+                        : galleryItems.filter(item => (item.category || '').toLowerCase() === cat.toLowerCase()).length;
+
+                      return (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setSelectedGalleryCategoryFilter(cat)}
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1 ${
+                            isSelected
+                              ? 'bg-[#043E49] text-white shadow-2xs'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          <span>{cat}</span>
+                          <span className={`text-[9px] px-1.5 py-0.1 rounded-full ${
+                            isSelected ? 'bg-white/20 text-white' : 'bg-white text-gray-600'
+                          }`}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
@@ -4062,52 +4531,70 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                 <div className="p-8 border border-dashed border-gray-200 rounded-xl text-center text-gray-400">
                   <ImageIcon className="w-8 h-8 mx-auto text-gray-300 mb-1.5" />
                   <p className="text-xs sm:text-sm font-bold text-gray-600">
-                    {galleryItems.length === 0 ? 'No pictures in the gallery' : `No pictures in "${selectedGalleryCategoryFilter}"`}
+                    {galleryItems.length === 0 ? 'No media in the gallery' : `No media matching current filters`}
                   </p>
                   <p className="text-[11px] text-gray-400 mt-0.5">
-                    {galleryItems.length === 0 ? 'Upload a picture above to display it on the Gallery page.' : 'Select another category filter or upload a photo to this category.'}
+                    {galleryItems.length === 0 ? 'Upload a photo or video above to display it on the Gallery page.' : 'Try changing your category or media type filter.'}
                   </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {adminFilteredGalleryItems.map((item) => {
                     const isEditingThisPhoto = editingPhotoId === item.id;
+                    const isVideo = item.mediaType === 'video' || Boolean(item.videoUrl);
 
                     return (
                       <div
                         key={item.id}
                         className="group bg-white rounded-xl border border-gray-200 overflow-hidden shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between"
                       >
-                        <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+                        <div className="relative aspect-[4/3] bg-gray-900 overflow-hidden">
                           <img
-                            src={item.imageUrl}
+                            src={item.imageUrl || 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=1200&q=80'}
                             alt={item.title}
                             className="w-full h-full object-cover"
                           />
 
-                          {/* Category Badge on Image Thumbnail */}
-                          <div className="absolute top-2 left-2 z-10">
+                          {/* Category Badge on Thumbnail */}
+                          <div className="absolute top-2 left-2 z-10 flex items-center gap-1 flex-wrap">
                             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-[#043E49]/90 backdrop-blur-xs px-2 py-0.5 rounded-md shadow-xs">
                               <Tag className="w-2.5 h-2.5" />
                               <span>{item.category || 'Other'}</span>
                             </span>
+                            {isVideo && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-black/80 backdrop-blur-xs px-1.5 py-0.5 rounded-md shadow-xs">
+                                <Video className="w-2.5 h-2.5 text-teal-300" />
+                                <span>Video {item.duration ? `• ${item.duration}` : ''}</span>
+                              </span>
+                            )}
                           </div>
+
+                          {/* Center Play Icon for Videos */}
+                          {isVideo && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/20">
+                              <div className="w-10 h-10 rounded-full bg-white/90 text-[#043E49] flex items-center justify-center pl-0.5 shadow-md">
+                                <Play className="w-4 h-4 fill-current" />
+                              </div>
+                            </div>
+                          )}
 
                           {/* Quick Actions in top-right */}
                           <div className="absolute top-2 right-2 flex items-center gap-1.5 z-10">
-                            {/* Resize Button */}
-                            <button
-                              type="button"
-                              onClick={() => openCropModal(item.imageUrl, null, item.title, 'gallery', item.id)}
-                              aria-label="Resize and crop photo"
-                              className="px-2 py-1 rounded-lg bg-white/95 hover:bg-[#043E49] text-gray-700 hover:text-white shadow-xs transition-colors cursor-pointer flex items-center gap-1 text-[10px] font-bold"
-                              title="Resize / Crop Photo"
-                            >
-                              <Crop className="w-3.5 h-3.5" />
-                              <span>Resize</span>
-                            </button>
+                            {/* Resize Button for Photos */}
+                            {!isVideo && (
+                              <button
+                                type="button"
+                                onClick={() => openCropModal(item.imageUrl, null, item.title, 'gallery', item.id)}
+                                aria-label="Resize and crop photo"
+                                className="px-2 py-1 rounded-lg bg-white/95 hover:bg-[#043E49] text-gray-700 hover:text-white shadow-xs transition-colors cursor-pointer flex items-center gap-1 text-[10px] font-bold"
+                                title="Resize / Crop Photo"
+                              >
+                                <Crop className="w-3.5 h-3.5" />
+                                <span>Resize</span>
+                              </button>
+                            )}
 
-                            {/* Delete Button with Inline Confirmation (No window.confirm) */}
+                            {/* Delete Button with Inline Confirmation */}
                             {deletingPhotoId === item.id ? (
                               <div 
                                 onClick={(e) => e.stopPropagation()}
@@ -4133,7 +4620,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                               <button
                                 type="button"
                                 onClick={() => setDeletingPhotoId(item.id)}
-                                aria-label="Delete photo from gallery"
+                                aria-label="Delete media from gallery"
                                 className="p-1.5 rounded-lg bg-white/95 hover:bg-rose-50 text-rose-600 shadow-xs transition-colors cursor-pointer"
                                 title="Delete from gallery"
                               >
@@ -4156,6 +4643,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 />
                               </div>
                               <div>
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">Media Type</label>
+                                <select
+                                  value={editPhotoMediaType}
+                                  onChange={(e) => setEditPhotoMediaType(e.target.value as 'image' | 'video')}
+                                  className="w-full px-2 py-1 text-xs border border-gray-200 rounded-md font-bold text-gray-800 bg-white focus:ring-1 focus:ring-[#043E49] cursor-pointer"
+                                >
+                                  <option value="image">Photo</option>
+                                  <option value="video">Video</option>
+                                </select>
+                              </div>
+                              {editPhotoMediaType === 'video' && (
+                                <div>
+                                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">Video URL</label>
+                                  <input
+                                    type="text"
+                                    value={editPhotoVideoUrl}
+                                    onChange={(e) => setEditPhotoVideoUrl(e.target.value)}
+                                    placeholder="https://... (video url or data)"
+                                    className="w-full px-2 py-1 text-xs border border-gray-200 rounded-md font-mono text-gray-900 focus:ring-1 focus:ring-[#043E49]"
+                                  />
+                                </div>
+                              )}
+                              <div>
                                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">Category</label>
                                 <select
                                   value={editPhotoCategory}
@@ -4166,6 +4676,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                     <option key={cat} value={cat}>{cat}</option>
                                   ))}
                                 </select>
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5 flex items-center gap-1">
+                                  <Calendar className="w-2.5 h-2.5 text-[#043E49]" />
+                                  <span>Upload / Display Date</span>
+                                </label>
+                                <input
+                                  type="date"
+                                  value={editPhotoUploadDate}
+                                  onChange={(e) => setEditPhotoUploadDate(e.target.value)}
+                                  className="w-full px-2 py-1 text-xs border border-gray-200 rounded-md font-medium text-gray-900 bg-white focus:ring-1 focus:ring-[#043E49]"
+                                />
                               </div>
                               <div>
                                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">Caption (Optional)</label>
@@ -4204,7 +4726,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                     type="button"
                                     onClick={() => handleStartEditPhoto(item)}
                                     className="p-1 text-gray-400 hover:text-[#043E49] hover:bg-gray-100 rounded transition-colors cursor-pointer shrink-0"
-                                    title="Edit photo details"
+                                    title="Edit media details"
                                   >
                                     <Pencil className="w-3 h-3" />
                                   </button>
@@ -4226,7 +4748,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                   value={item.category || galleryCategories[0] || 'Other'}
                                   onChange={(e) => handleMoveImageCategory(item.id, e.target.value)}
                                   aria-label={`Change category for ${item.title}`}
-                                  className="text-xs px-2 py-1 rounded-md border border-gray-200 bg-gray-50 hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#043E49] font-bold text-gray-700 cursor-pointer transition-colors max-w-[150px]"
+                                  className="text-xs px-2 py-1 rounded-md border border-gray-200 bg-gray-50 hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#043E49] font-bold text-gray-700 cursor-pointer transition-colors max-w-[140px]"
                                 >
                                   {galleryCategories.map(cat => (
                                     <option key={cat} value={cat}>{cat}</option>
@@ -4234,10 +4756,28 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
                                 </select>
                               </div>
 
-                              <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1">
+                              {/* Direct Calendar Date Switcher on Card */}
+                              <div className="pt-1.5 border-t border-gray-100 flex items-center justify-between gap-2">
+                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                                  <Calendar className="w-3 h-3 text-[#043E49]" />
+                                  <span>Date:</span>
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <input
+                                    type="date"
+                                    value={toInputDateFormat(item.uploadedAt)}
+                                    onChange={(e) => handleQuickUpdateDate(item.id, e.target.value)}
+                                    aria-label={`Change date for ${item.title}`}
+                                    className="text-xs px-2 py-1 rounded-md border border-gray-200 bg-gray-50 hover:bg-white focus:bg-white focus:ring-1 focus:ring-[#043E49] font-semibold text-gray-700 cursor-pointer transition-colors max-w-[130px]"
+                                    title="Click to change date with calendar picker"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between text-[10px] text-gray-400 pt-0.5">
                                 <div className="flex items-center gap-1">
-                                  <Clock className="w-2.5 h-2.5" />
-                                  <span>Uploaded {item.uploadedAt}</span>
+                                  <Clock className="w-2.5 h-2.5 text-[#043E49]" />
+                                  <span className="font-medium text-gray-500">Live: {formatGalleryDate(item.uploadedAt)}</span>
                                 </div>
                               </div>
                             </>

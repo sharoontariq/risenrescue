@@ -51,9 +51,12 @@ export interface GalleryItem {
   caption: string;
   category: string;
   imageUrl: string;
+  videoUrl?: string;
+  mediaType?: 'image' | 'video';
   uploadedAt: string;
   isUserUploaded?: boolean;
   photographer?: string;
+  duration?: string;
 }
 
 export interface DonationSubmission {
